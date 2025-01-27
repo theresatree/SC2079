@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -52,6 +53,31 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
 
     TextView incomingMessages;
     StringBuilder messages;
+
+    // Stuff that is used for reconnecting
+    Handler reconnectionHandler = new Handler();
+    boolean retryConnection = false; // this flag tells us whether or not we have tried reconnecting yet
+
+    Runnable reconnectionRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try{
+                if(BluetoothConnectionService.BluetoothConnectionStatus == false)
+                {
+                    Log.d(TAG, "Reconnecting...");
+                    startBTConnection(mBTDevice, MY_UUID_INSECURE);
+                    //Toast.makeText(this, "Reconnection Successful", Toast.LENGTH_SHORT).show(); // not sure why toast throwing an error here
+                    Log.d(TAG, "Reconnection Sucessful");
+                }
+                reconnectionHandler.removeCallbacks(reconnectionRunnable);
+                retryConnection = false;
+            } catch (Exception e) {
+                Log.d(TAG, "Reconnection Failed");
+                e.printStackTrace();
+                Log.d(TAG, "Failed to reconnect, retrying in 5s...");
+            }
+        }
+    };
 
     //BroadcastReceiver for ACTION_STATE_CHANGED (ENABLING OF BLUETOOTH)
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
@@ -119,6 +145,30 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
         }
     };
 
+    // Receiver to handle events related to connection (connecting, reconnecting, disconnecting)
+    private final BroadcastReceiver mBroadcastReceiver4 = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            BluetoothDevice mDevice = intent.getParcelableExtra("Device");
+            String status = intent.getStringExtra("Status");
+
+            if(status.equals("connected")){
+                Log.d(TAG, "mBroadcastReceiver4: Device is now connected to " + mDevice.getName());
+                Toast.makeText(context, "Device is now connected to " + mDevice.getName(), Toast.LENGTH_SHORT).show();
+            }
+            else if(status.equals("disconnected") && retryConnection == false){
+                Log.d(TAG, "mBroadcastReceiver4: Disconnected from " + mDevice.getName());
+                Toast.makeText(context, "Disconnected from " + mDevice.getName(), Toast.LENGTH_SHORT).show();
+
+                // Attempt to reconnect
+                mBluetoothConnection = new BluetoothConnectionService(getApplicationContext());
+
+                retryConnection = true; // By setting this to true, we only try to reconnect once
+                reconnectionHandler.postDelayed(reconnectionRunnable, 5000); // wait 5s before trying to reconnect
+            }
+
+        }
+    };
+
     // This is for getting incoming messages
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -138,6 +188,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
         unregisterReceiver(mBroadcastReceiver2);
         mBluetoothAdapter.cancelDiscovery();
         unregisterReceiver(mBroadcastReceiver3);
+        unregisterReceiver(mBroadcastReceiver4);
     }
 
     @Override
@@ -174,6 +225,10 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         registerReceiver(mBroadcastReceiver3, filter);
 
+        // BroadcastReceiver related to Connection Events
+        IntentFilter filter2 = new IntentFilter("ConnectionStatus");
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver4, filter2);
+
         Button btnBTOn = findViewById(R.id.btnBTOn);
         btnBTOn.setOnClickListener(view -> enableBluetooth());
 
@@ -209,7 +264,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
     public void startBTConnection(BluetoothDevice device, UUID uuid){
         Log.d(TAG, "startBTConnection: Initialising RFCOMM Bluetooth Connection");
 
-        mBluetoothConnection.startClient(device,uuid);
+        mBluetoothConnection.startClientThread(device,uuid);
     }
 
     public void getBTPermission(){
