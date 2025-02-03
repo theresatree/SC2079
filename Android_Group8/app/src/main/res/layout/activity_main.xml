@@ -16,4 +16,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/stat_sys_data_bluetooth" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragmentGrid"
+        android:name="com.example.sc2079.GridFragment"
+        android:layout_width="700dp"
+        android:layout_height="700dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

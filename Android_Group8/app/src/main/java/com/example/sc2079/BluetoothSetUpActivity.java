@@ -184,11 +184,38 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
     protected void onDestroy() {
         Log.d(TAG, "onDestory: called.");
         super.onDestroy();
-        unregisterReceiver(mBroadcastReceiver1);
-        unregisterReceiver(mBroadcastReceiver2);
+
+        try {
+            unregisterReceiver(mBroadcastReceiver1);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Receiver mBroadcastReceiver1 not registered.");
+        }
+
+        try {
+            unregisterReceiver(mBroadcastReceiver2);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Receiver mBroadcastReceiver2 not registered.");
+        }
+
+        try {
+            unregisterReceiver(mBroadcastReceiver3);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Receiver mBroadcastReceiver3 not registered.");
+        }
+
+        try {
+            unregisterReceiver(mBroadcastReceiver4);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Receiver mBroadcastReceiver4 not registered.");
+        }
+
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Receiver mReceiver not registered.");
+        }
+
         mBluetoothAdapter.cancelDiscovery();
-        unregisterReceiver(mBroadcastReceiver3);
-        unregisterReceiver(mBroadcastReceiver4);
     }
 
     @Override
