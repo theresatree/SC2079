@@ -173,10 +173,16 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
     BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String text = intent.getStringExtra("theMessage");
+            String text = intent.getStringExtra("msg");
 
+            // messages is a StringBuilder (think of it as just a normal string)
+            // Then whenever we receive a message, we just append to this string
+            // After updating the "messages", we will update the UI element "incomingMessages"
             messages.append(text + "\n");
             incomingMessages.setText(messages);
+
+            // Check what is the string we received
+
         }
     };
 

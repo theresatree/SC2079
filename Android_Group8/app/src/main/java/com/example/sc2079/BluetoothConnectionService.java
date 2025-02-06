@@ -13,6 +13,9 @@ import android.widget.TextView;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -228,12 +231,14 @@ public class BluetoothConnectionService {
                     bytes = inStream.read(buffer);
                     String incomingMessage = new String(buffer, 0, bytes); // convert bytes to string, so we can see the message
                     Log.d(TAG, "InputStream: " + incomingMessage);
+                    handleIncomingBTMessage(incomingMessage);
 
                     // Display the incoming message on the chat by starting incomingMessage intent
-                    Intent incomingMessageIntent = new Intent("incomingMessage");
-                    incomingMessageIntent.putExtra("theMessage", incomingMessage);
+                    // SHIFTED INTO handleIncomingBTMessage
+                    //Intent incomingMessageIntent = new Intent("incomingMessage");
+                    //incomingMessageIntent.putExtra("msg", incomingMessage);
 
-                    LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+                    //LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
                 } catch (IOException e) {
                     Log.e(TAG, "Error reading input stream. " + e.getMessage());
 
@@ -251,6 +256,34 @@ public class BluetoothConnectionService {
 
                     break;
                 }
+            }
+        }
+
+        // Used to determine what type of message was received from the Rpi
+        private void handleIncomingBTMessage(String msg){
+            Log.d(TAG, "handleIncomingBTMessage: New Incoming Message: " + msg);
+            // try to convert the message into a Json Object
+            try{
+                JSONObject msgJSON = new JSONObject(msg);
+                Log.i(TAG, "Successfully converted into JSON: " + msg);
+                String msgType = msgJSON.getString("type");
+                switch(msgType.toUpperCase()){
+                    case "IMAGE-REC":
+                        // create a broadcastreceiver to handle the intent
+                        // send an intent using SendIntent to update the obstacles
+                        return;
+                    case "CHAT":
+                        // Can test using {"type":"CHAT","msg":"helloworld"}, in AMDTool
+                        String message = msgJSON.getString("msg");
+                        sendIntent("incomingMessage", message);
+                        Log.d(TAG, "handleIncomingBTMessage: FOUND A CHAT MESSAGE");
+                        return;
+                }
+            } catch(Exception e){
+                // Not a JSON obj
+                JSONObject msgJSON = new JSONObject();
+                //msgJSON.put("msg", msg);
+                //sendIntent("incomingMessage", msgJSON.toString());
             }
         }
 
@@ -296,4 +329,12 @@ public class BluetoothConnectionService {
         Log.d(TAG, "write: Write is called." );
         mConnectedThread.write(out);
     }
+
+    private void sendIntent(String intentAction, String content)
+    {
+        Intent sendingIntent = new Intent(intentAction);
+        sendingIntent.putExtra("msg", content);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(sendingIntent);
+    }
 }
+
