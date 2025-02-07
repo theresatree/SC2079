@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -103,44 +104,48 @@ public class BluetoothConnectionService {
         public void run() {
             BluetoothSocket tmp = null;
             Log.d(TAG, "RUN: mConnectThread");
-
-            try {
-                Log.d(TAG, "ConnectThread: Trying to create InsecureRfcommSocket using UUID: " + MY_UUID);
-                tmp = mmDevice.createRfcommSocketToServiceRecord(deviceUUID);
-            } catch (IOException e) {
-                Log.e(TAG, "ConnectThread: Could not create InsecureRfcommSocket " + e.getMessage());
-            }
-            mmSocket = tmp;
-            //mBluetoothAdapter.cancelDiscovery();
-
-            try {
-                mmSocket.connect();
-
-                Log.d(TAG, "RUN: ConnectThread connected.");
-
-                connected(mmSocket, mmDevice);
-
-            } catch (IOException e) {
+            for(ParcelUuid uuid : mmDevice.getUuids())
+            {
+                deviceUUID = UUID.fromString(uuid.toString());
                 try {
-                    mmSocket.close();
-                    Log.d(TAG, "RUN: ConnectThread socket closed.");
-                } catch (IOException e1) {
-                    Log.e(TAG, "RUN: ConnectThread: Unable to close connection in socket." + e1.getMessage());
+                    Log.d(TAG, "ConnectThread: Trying to create InsecureRfcommSocket using UUID: " + MY_UUID);
+                    tmp = mmDevice.createRfcommSocketToServiceRecord(deviceUUID);
+                } catch (IOException e) {
+                    Log.e(TAG, "ConnectThread: Could not create InsecureRfcommSocket " + e.getMessage());
                 }
-                Log.d(TAG, "RUN: ConnectThread: could not connect to UUID." + MY_UUID);
+                mmSocket = tmp;
+                //mBluetoothAdapter.cancelDiscovery();
+
                 try {
+                    mmSocket.connect();
 
-                } catch (Exception z) {
-                    z.printStackTrace();
-                    Log.e(TAG,"error here");
+                    Log.d(TAG, "RUN: ConnectThread connected.");
+                    break;
+
+
+                } catch (IOException e) {
+                    try {
+                        mmSocket.close();
+                        Log.d(TAG, "RUN: ConnectThread socket closed.");
+                    } catch (IOException e1) {
+                        Log.e(TAG, "RUN: ConnectThread: Unable to close connection in socket." + e1.getMessage());
+                    }
+                    Log.d(TAG, "RUN: ConnectThread: could not connect to UUID." + MY_UUID);
+                    try {
+
+                    } catch (Exception z) {
+                        z.printStackTrace();
+                        Log.e(TAG,"error here");
+                    }
+
                 }
-
+                try {
+                    mProgressDialog.dismiss();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
             }
-            try {
-                mProgressDialog.dismiss();
-            } catch (NullPointerException e) {
-                e.printStackTrace();
-            }
+            connected(mmSocket, mmDevice);
         }
 
         public void cancel(){

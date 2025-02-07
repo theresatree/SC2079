@@ -750,6 +750,22 @@ public class GridFragment extends Fragment {
             // Optional: Show a toast with the new position
             String message = String.format("Car moved to: (%d, %d)", newCol, newRow);
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+
+            // Send a message to the rpi with the move instruction
+            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+                case 0: // North
+                    newRow = currentRow + direction;
+                    break;
+                case 90: // East
+                    newCol = currentCol + direction;
+                    break;
+                case 180: // South
+                    newRow = currentRow - direction;
+                    break;
+                case 270: // West
+                    newCol = currentCol - direction;
+                    break;
+            }
         } else {
             // Collision detected, show a warning
             Toast.makeText(getContext(), "Cannot move forward (collision detected)", Toast.LENGTH_SHORT).show();

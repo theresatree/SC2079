@@ -181,8 +181,16 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
             messages.append(text + "\n");
             incomingMessages.setText(messages);
 
-            // Check what is the string we received
+        }
+    };
 
+    // This is for sending messages
+    private final BroadcastReceiver mBroadcastReceiver5 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("Message");
+            byte[] bytes = message.getBytes(Charset.defaultCharset());
+            mBluetoothConnection.write(bytes);
         }
     };
 
