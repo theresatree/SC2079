@@ -1,11 +1,15 @@
 package com.example.sc2079;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.RotateDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.Shape;
 import android.os.Bundle;
@@ -38,6 +42,7 @@ public class GridFragment extends Fragment {
     private Button draggedObstacle;
     private boolean carSet = false;
     private float initialTouchX, initialTouchY;
+
     private int originalRow, originalCol;
     private float triangleRotation = 0f;
     private int obstacleCounter = 1;
@@ -134,7 +139,7 @@ public class GridFragment extends Fragment {
 
     private void populateGrid() {
         // Create buttons grid - starting from bottom-left
-        for (int row = ROWS - 2; row >= 0; row--){
+        for (int row = ROWS - 1; row >= 0; row--){
             for (int col = 0; col < COLS; col++) {
                 Button button = new Button(getContext());
 
@@ -146,7 +151,7 @@ public class GridFragment extends Fragment {
                 params.height = heightInPixels;
                 params.setMargins(0, 0, 0, 0);
 
-                params.rowSpec = GridLayout.spec(ROWS - 2 - row);
+                params.rowSpec = GridLayout.spec(ROWS - 1 - row);
                 params.columnSpec = GridLayout.spec(col);
 
                 button.setLayoutParams(params);
@@ -156,10 +161,10 @@ public class GridFragment extends Fragment {
                 final int finalRow = row;
                 final int finalCol = col;
 
-                button.setTag(new int[]{finalRow, finalCol}); // Store coordinates in button's tag
+                button.setTag(new int[]{finalRow, finalCol, 0, 0}); // Store coordinates in button's tag, and also whether it has been placed.
 
                 button.setOnClickListener(v -> {
-                    if (isSettingObstacle) {
+                    if (isSettingObstacle  && !isDragging) {
                         int[] coords = (int[]) button.getTag();
                         if (!canPlaceObstacle(coords)) {
                             Toast.makeText(getContext(), "Can't place obstacle here", Toast.LENGTH_SHORT).show();
@@ -167,27 +172,28 @@ public class GridFragment extends Fragment {
                         }
                         int currentRow = coords[0];
                         int currentCol = coords[1];
-                        Drawable background = button.getBackground();
-                        if (background instanceof ColorDrawable) {
-                            int currentColor = ((ColorDrawable) background).getColor();
-                            if (currentColor == getResources().getColor(android.R.color.black)) {
-                                button.setBackgroundResource(R.drawable.button_border_color);
-                                button.setText(""); // Clear the number when removing obstacle
-                            } else {
-                                button.setBackgroundColor(getResources().getColor(android.R.color.black));
-                                button.setText(String.valueOf(obstacleCounter++)); // Add number to obstacle
-                                button.setTextColor(getResources().getColor(android.R.color.white)); // Make text white for visibility
-                            }
-                        } else {
-                            button.setBackgroundColor(getResources().getColor(android.R.color.black));
+                        int obstaclePlaced = coords[2];
+                        int obstacleDirection = coords[3];
+
+                        if (obstaclePlaced == 0) {
+                            // Add obstacle
+                            button.setBackground(getResources().getDrawable(R.drawable.custom_obstacle_color));
+                            // Use a removed obstacle number if available, otherwise use a new one
+                            int obstacleNumber;
                             if (!removedObstacleNumbers.isEmpty()) {
-                                button.setText(String.valueOf(removedObstacleNumbers.pollFirst()));
-                                Log.d(TAG, String.valueOf(removedObstacleNumbers));
+                                obstacleNumber = removedObstacleNumbers.pollFirst(); // Reuse removed obstacle number
                             } else {
-                                button.setText(String.valueOf(obstacleCounter++)); // Add number to obstacle
+                                obstacleNumber = obstacleCounter++; // Use the next available number
                             }
-                            button.setTextColor(getResources().getColor(android.R.color.white)); // Make text white for visibility
-                            String message = String.format("Obstacle %d Placed: (%d,%d)", obstacleCounter-1, currentCol, currentRow);
+                            // Set the text for the obstacle
+                            button.setText(String.valueOf(obstacleNumber));
+                            button.setTextColor(getResources().getColor(android.R.color.white)); // Ensure visibility
+
+                            // Update the button's tag to indicate an obstacle is placed
+                            button.setTag(new int[]{currentRow, currentCol, 1, obstacleDirection}); // Flag set to 1 (obstacle placed)
+
+                            // Show a toast with the obstacle placement details
+                            String message = String.format("Obstacle %d Placed: (%d,%d)", obstacleNumber, currentCol, currentRow);
                             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                         }
                     } else if (isSettingCar) {
@@ -217,8 +223,8 @@ public class GridFragment extends Fragment {
                         if (startCol < 0) startCol = 0;
 
                         // Check if the 3x3 grid can fit within the bounds of the grid layout
-                        if (startRow + 3 > ROWS - 1) {
-                            startRow = ROWS - 1 - 3;  // Make sure the grid stays within bounds
+                        if (startRow + 3 > ROWS) {
+                            startRow = ROWS - 3;  // Make sure the grid stays within bounds
                         }
                         if (startCol + 3 > COLS) {
                             startCol = COLS - 3;  // Make sure the grid stays within bounds
@@ -265,16 +271,7 @@ public class GridFragment extends Fragment {
                         // Store the current car placement coordinates
                         lastCarCoordinates = new int[]{currentRow, currentCol};
 
-                        // Optional: Show the coordinates of the car placement in a toast
-                        StringBuilder carCoordinates = new StringBuilder();
-                        for (int r = 0; r < 3; r++) {
-                            for (int c = 0; c < 3; c++) {
-                                int targetRow = startRow + r;
-                                int targetCol = startCol + c;
-                                carCoordinates.append(String.format("(%d,%d) ", targetCol, targetRow));
-                            }
-                        }
-                        String message = "Car placed at: " + carCoordinates.toString();
+                        String message = "Car placed at: " + String.format("%d %d", lastCarCoordinates[0], lastCarCoordinates[1]);
                         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getContext(),
@@ -342,6 +339,7 @@ public class GridFragment extends Fragment {
         }
     }
 
+
     private ShapeDrawable createTriangleDrawable(int width, int height) {
         Shape triangleShape = new Shape() {
             @Override
@@ -369,33 +367,33 @@ public class GridFragment extends Fragment {
     }
 
     private void updateTriangleRotation() {
-        for (int r = 0; r < 3; r++) {
-            for (int c = 0; c < 3; c++) {
-                int targetRow = lastCarCoordinates[0] - 1 + r;
-                int targetCol = lastCarCoordinates[1] - 1 + c;
+        // Get the exact coordinates of the center of the 3x3 grid
+        int targetRow = lastCarCoordinates[0];
+        int targetCol = lastCarCoordinates[1];
 
-                for (int i = 0; i < gridLayout.getChildCount(); i++) {
-                    View child = gridLayout.getChildAt(i);
-                    if (child instanceof Button) {
-                        int[] buttonCoords = (int[]) child.getTag();
-                        if (buttonCoords != null &&
-                                buttonCoords[0] == targetRow &&
-                                buttonCoords[1] == targetCol) {
+        // Find the button at the exact target position
+        for (int i = 0; i < gridLayout.getChildCount(); i++) {
+            View child = gridLayout.getChildAt(i);
+            if (child instanceof Button) {
+                int[] buttonCoords = (int[]) child.getTag();
+                if (buttonCoords != null &&
+                        buttonCoords[0] == targetRow &&
+                        buttonCoords[1] == targetCol) {
 
-                            if (r == 1 && c == 1) { // Center cell
-                                // Create a *new* LayerDrawable with rotated triangle
-                                ShapeDrawable triangle = createTriangleDrawable(child.getWidth(), child.getHeight());
-                                ShapeDrawable orangeBackground = new ShapeDrawable();
-                                orangeBackground.getPaint().setColor(getResources().getColor(android.R.color.holo_orange_light));
+                    // Create the background and triangle for the center cell
+                    ShapeDrawable orangeBackground = new ShapeDrawable();
+                    orangeBackground.getPaint().setColor(getResources().getColor(android.R.color.holo_orange_light));
 
-                                Drawable[] layers = new Drawable[]{orangeBackground, triangle};
-                                LayerDrawable layerDrawable = new LayerDrawable(layers);
+                    // Create the triangle, ensuring it fits within the current cell
+                    ShapeDrawable triangle = createTriangleDrawable(child.getWidth(), child.getHeight());
 
-                                child.setBackground(layerDrawable);
-                                child.setPadding(0, 0, 0, 0);
-                            }
-                        }
-                    }
+                    // Set both the background and the triangle as a layered drawable
+                    Drawable[] layers = new Drawable[]{orangeBackground, triangle};
+                    LayerDrawable layerDrawable = new LayerDrawable(layers);
+
+                    // Set the layered drawable as the background for the button
+                    child.setBackground(layerDrawable);
+                    child.setPadding(0, 0, 0, 0);
                 }
             }
         }
@@ -433,23 +431,34 @@ public class GridFragment extends Fragment {
         draggedObstacle.setTranslationX(0);
         draggedObstacle.setTranslationY(0);
 
-        // Find drop location
         View newParent = findViewAtPosition(endX, endY);
-        if (newParent instanceof Button && newParent != draggedObstacle) {
-            Button newButton = (Button) newParent;
+        Button newButton = (Button) newParent;
 
-            // Check for collisions before moving the obstacle
-            if (!isColliding(newButton)) {
-                // Move obstacle to new position
-                moveObstacleTo(newButton);
+        if (newParent != null) {
+            int[] originalCoords = (int[]) draggedObstacle.getTag();
+            int[] newCoords = (int[]) newButton.getTag();
+
+            if (originalCoords[0] == newCoords[0] && originalCoords[1] == newCoords[1]) {
+                // Same coordinates: ROTATE
+                int rotation = newCoords[3];
+                rotation = (rotation +1) %4;
+                newButton.setTag(new int[]{originalCoords[0], originalCoords[1], 1, rotation});
+                rotateObstacle(newButton,rotation);
+
             } else {
-                // Collision detected, reset the obstacle to its original position
-                Toast.makeText(getContext(), "Collision detected! Cannot place obstacle here.", Toast.LENGTH_SHORT).show();
-                draggedObstacle.setBackgroundColor(getResources().getColor(android.R.color.black)); // Reset to original state
+                // Different coordinates: MOVE
+                if (!isColliding(newButton)) {
+                    moveObstacleTo(newButton);
+                    rotateObstacle(newButton,originalCoords[3]);
+                } else {
+                    Toast.makeText(getContext(), "Collision detected! Cannot place obstacle here.", Toast.LENGTH_SHORT).show();
+                    draggedObstacle.setBackground(getResources().getDrawable(R.drawable.custom_obstacle_color)); // Reset to original state
+                }
             }
         } else {
-            // Remove if dropped outside grid
-            removeObstacle(draggedObstacle);
+            // Dropped outside grid: REMOVE
+            int[] originalCoords = (int[]) draggedObstacle.getTag();
+            removeObstacle(originalCoords);
         }
 
         draggedObstacle = null;
@@ -459,6 +468,7 @@ public class GridFragment extends Fragment {
         int[] newCoords = (int[]) newButton.getTag();
         int newRow = newCoords[0];
         int newCol = newCoords[1];
+        int obstaclePlaced = newCoords[2];
 
         // Check if the new position overlaps with any existing obstacles
         for (int r = -1; r <= 1; r++) {
@@ -467,7 +477,7 @@ public class GridFragment extends Fragment {
                 int targetCol = newCol + c;
 
                 // Skip if out of bounds
-                if (targetRow < 0 || targetRow >= ROWS - 1 || targetCol < 0 || targetCol >= COLS) {
+                if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
                     continue;
                 }
 
@@ -484,7 +494,7 @@ public class GridFragment extends Fragment {
                             Drawable background = child.getBackground();
                             if (background instanceof ColorDrawable) {
                                 int color = ((ColorDrawable) background).getColor();
-                                if (color == getResources().getColor(android.R.color.black) || // Obstacle
+                                if (1 == obstaclePlaced || // Obstacle
                                         color == getResources().getColor(android.R.color.holo_orange_light)) { // Car
                                     return true; // Collision detected
                                 }
@@ -527,11 +537,9 @@ public class GridFragment extends Fragment {
     }
 
     private boolean isObstacle(Button button) {
-        Drawable background = button.getBackground();
-        if (background instanceof ColorDrawable) {
-            return ((ColorDrawable) background).getColor() == getResources().getColor(android.R.color.black);
-        }
-        return false;
+        int[] coords = (int[]) button.getTag();
+        int obstaclePlaced = coords[2];
+        return obstaclePlaced == 1;
     }
 
     private void moveObstacleTo(Button newButton) {
@@ -539,27 +547,60 @@ public class GridFragment extends Fragment {
         String obstacleNumber = draggedObstacle.getText().toString();
         draggedObstacle.setBackgroundResource(R.drawable.button_border_color);
         draggedObstacle.setText("");
+
         // Set new position
-        newButton.setBackgroundColor(getResources().getColor(android.R.color.black));
+        newButton.setBackground(getResources().getDrawable(R.drawable.custom_obstacle_color));
         newButton.setText(obstacleNumber);
         newButton.setTextColor(getResources().getColor(android.R.color.white));
-
-        // Send Bluetooth update
+        int[] originalCoords = (int[]) draggedObstacle.getTag();
+        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3]}); // Clear old position
         int[] newCoords = (int[]) newButton.getTag();
+        newButton.setTag(new int[]{newCoords[0], newCoords[1], 1, originalCoords[3]}); //set new position.
+        // Send Bluetooth update
         sendObstacleUpdate(originalRow, originalCol, newCoords[0], newCoords[1]);
+
     }
 
-    private void removeObstacle(Button obstacle) {
-        String obstacleNumberStr = obstacle.getText().toString();
+    private void removeObstacle(int[] originalCoords){
+        String obstacleNumberStr = draggedObstacle.getText().toString();
         int obstacleNumber = Integer.parseInt(obstacleNumberStr);
 
         // Add the removed obstacle number to the TreeSet
         removedObstacleNumbers.add(obstacleNumber);
 
-        obstacle.setBackgroundResource(R.drawable.button_border_color);
-        obstacle.setText("");
+        draggedObstacle.setBackgroundResource(R.drawable.button_border_color);
+        draggedObstacle.setText("");
+        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3]});
         sendObstacleRemoval(originalRow, originalCol);
     }
+
+    private void rotateObstacle(Button button, int rotation) {
+        Drawable background = button.getBackground();
+        LayerDrawable layerDrawable;
+
+        // If it's the first rotation, it will be a LayerDrawable
+        // If it's already been rotated, it will be a RotateDrawable
+        if (background instanceof LayerDrawable) {
+            layerDrawable = (LayerDrawable) background;
+        } else if (background instanceof RotateDrawable) {
+            // If it's already a RotateDrawable, we just update the rotation
+            RotateDrawable rotateDrawable = (RotateDrawable) background;
+            rotateDrawable.setLevel((int)((rotation * 90f / 360f) * 10000));
+            return;
+        } else {
+            return; // Invalid drawable type
+        }
+
+        // Create new RotateDrawable for first rotation
+        RotateDrawable rotateDrawable = new RotateDrawable();
+        rotateDrawable.setDrawable(layerDrawable);
+        rotateDrawable.setFromDegrees(0);
+        rotateDrawable.setToDegrees(360);
+        rotateDrawable.setLevel((int)((rotation * 90f / 360f) * 10000));
+
+        button.setBackground(rotateDrawable);
+    }
+
 
     private void sendObstacleUpdate(int oldX, int oldY, int newX, int newY) {
         String message = String.format("Obstacle Moved: (%d,%d) to (%d,%d)", oldX, oldY, newX, newY);
@@ -590,8 +631,8 @@ public class GridFragment extends Fragment {
         if (startCol < 0) startCol = 0;
 
         // Check if the 3x3 grid can fit within the bounds of the grid layout
-        if (startRow + 3 > ROWS - 1) {
-            startRow = ROWS - 1 - 3;  // Make sure the grid stays within bounds
+        if (startRow + 3 > ROWS) {
+            startRow = ROWS - 3;  // Make sure the grid stays within bounds
         }
         if (startCol + 3 > COLS) {
             startCol = COLS - 3;  // Make sure the grid stays within bounds
@@ -604,7 +645,7 @@ public class GridFragment extends Fragment {
                 int targetCol = startCol + c;
 
                 // Skip if out of bounds
-                if (targetRow < 0 || targetRow >= ROWS - 1 || targetCol < 0 || targetCol >= COLS) {
+                if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
                     continue;
                 }
 
@@ -629,6 +670,9 @@ public class GridFragment extends Fragment {
         int row = carCoordinates[0];
         int col = carCoordinates[1];
 
+        if (row <= 0 || col <= 0 || row >= ROWS - 1 || col >= COLS - 1) {
+            return false; // Can't place car near the edge of the grid (3x3 area won't fit)
+        }
         // Check if the 3x3 area around the clicked spot is free from obstacles (black color)
         for (int r = -1; r <= 1; r++) {
             for (int c = -1; c <= 1; c++) {
@@ -636,7 +680,7 @@ public class GridFragment extends Fragment {
                 int targetCol = col + c;
 
                 // Skip if out of bounds
-                if (targetRow < 0 || targetRow >= ROWS - 1 || targetCol < 0 || targetCol >= COLS) {
+                if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
                     continue;
                 }
 
@@ -651,9 +695,8 @@ public class GridFragment extends Fragment {
 
                             // Check if the button's background is black (obstacle)
                             Drawable background = child.getBackground();
-                            if (background instanceof ColorDrawable) {
-                                int color = ((ColorDrawable) background).getColor();
-                                if (color == getResources().getColor(android.R.color.black)) {
+                            if (!(background instanceof ColorDrawable)) {
+                                if (buttonCoords[2]==1) {
                                     return false; // Can't place car if there's an obstacle
                                 }
                             }
@@ -678,7 +721,7 @@ public class GridFragment extends Fragment {
                 int targetCol = col + c;
 
                 // Skip if out of bounds
-                if (targetRow < 0 || targetRow >= ROWS - 1 || targetCol < 0 || targetCol >= COLS) {
+                if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
                     continue;
                 }
 
@@ -714,6 +757,7 @@ public class GridFragment extends Fragment {
 
         int currentRow = lastCarCoordinates[0];
         int currentCol = lastCarCoordinates[1];
+
 
         // Calculate the new position based on the rotation
         int newRow = currentRow;
@@ -765,8 +809,8 @@ public class GridFragment extends Fragment {
         if (startRow < 0) startRow = 0;
         if (startCol < 0) startCol = 0;
 
-        if (startRow + 3 > ROWS - 1) {
-            startRow = ROWS - 1 - 3;
+        if (startRow + 3 > ROWS) {
+            startRow = ROWS - 3;
         }
         if (startCol + 3 > COLS) {
             startCol = COLS - 3;
