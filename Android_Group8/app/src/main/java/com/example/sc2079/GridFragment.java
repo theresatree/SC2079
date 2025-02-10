@@ -17,22 +17,29 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import androidx.gridlayout.widget.GridLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.TreeSet;
 
 public class GridFragment extends Fragment {
     public static final String TAG = "GridFragment";
     private TextView textViewDirection;
+    private CarLogAdapter carLogAdapter;
+    private ButtonLogAdapter btnLogAdapter;
 
     private static final int ROWS = 20;
     private static final int COLS = 15;
@@ -42,6 +49,7 @@ public class GridFragment extends Fragment {
     private Button draggedObstacle;
     private boolean carSet = false;
     private float initialTouchX, initialTouchY;
+    private int btnIDCounter=1;
 
     private int originalRow, originalCol;
     private float triangleRotation = 0f;
@@ -77,7 +85,28 @@ public class GridFragment extends Fragment {
         Button btnRight = root.findViewById(R.id.btnRight);
         Button btnLeft = root.findViewById(R.id.btnLeft);
 
+        RecyclerView rvBtnLog = root.findViewById(R.id.rvBtnLog);
+        RecyclerView rvCarLog = root.findViewById(R.id.rvCarLog);
+        ArrayList<String> carLogs = new ArrayList<>();
+        carLogAdapter = new CarLogAdapter(carLogs, rvCarLog);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        layoutManager.setReverseLayout(true);
+        layoutManager.setStackFromEnd(true);
+
+        rvCarLog.setLayoutManager(layoutManager);
+        rvCarLog.setAdapter(carLogAdapter);
+
         textViewDirection = root.findViewById(R.id.textViewDirection);
+
+        ArrayList<String> btnLogs = new ArrayList<>();
+        btnLogAdapter = new ButtonLogAdapter(btnLogs, rvBtnLog);
+        LinearLayoutManager layoutManager2 = new LinearLayoutManager(getContext());
+        layoutManager2.setReverseLayout(true);
+        layoutManager2.setStackFromEnd(true);
+        rvBtnLog.setLayoutManager(layoutManager2);
+        rvBtnLog.setAdapter(btnLogAdapter);
+
 
         btnUp.setOnClickListener(v -> {
             if (carSet) {
@@ -117,6 +146,42 @@ public class GridFragment extends Fragment {
         gridLayout.setUseDefaultMargins(false);
 
         populateGrid();
+
+        int cellSize = 22;
+        int widthInPixels = (int) (getResources().getDisplayMetrics().density * cellSize);
+
+        LinearLayout columnText = root.findViewById(R.id.columnText);
+        LinearLayout rowText = root.findViewById(R.id.rowText);
+
+        for (int i = 0; i <= COLS-1; i++) {
+            TextView textView = new TextView(getContext());
+            textView.setText(String.valueOf(i));
+            // Set layout parameters to ensure horizontal orientation
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    widthInPixels,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(0, 2,0, 0);  // Add some space between TextViews
+            textView.setLayoutParams(params);
+            textView.setGravity(Gravity.CENTER);
+            // Add TextView to the LinearLayout
+            columnText.addView(textView);
+        }
+
+        for (int i = ROWS-1; i >=0; i--) {
+            TextView textView = new TextView(getContext());
+            textView.setText(String.valueOf(i));
+            // Set layout parameters to ensure horizontal orientation
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    widthInPixels
+            );
+            params.setMargins(0, 0,0, 0);  // Add some space between TextViews
+            textView.setLayoutParams(params);
+            textView.setGravity(Gravity.CENTER);
+            // Add TextView to the LinearLayout
+            rowText.addView(textView);
+        }
 
         // Toggle obstacle mode when button is clicked
         btnSetObstacle.setOnClickListener(v -> {
@@ -161,7 +226,7 @@ public class GridFragment extends Fragment {
                 final int finalRow = row;
                 final int finalCol = col;
 
-                button.setTag(new int[]{finalRow, finalCol, 0, 0}); // Store coordinates in button's tag, and also whether it has been placed.
+                button.setTag(new int[]{finalRow, finalCol, 0, 0, -1}); // Store coordinates in button's tag, and also whether it has been placed.
 
                 button.setOnClickListener(v -> {
                     if (isSettingObstacle  && !isDragging) {
@@ -190,11 +255,10 @@ public class GridFragment extends Fragment {
                             button.setTextColor(getResources().getColor(android.R.color.white)); // Ensure visibility
 
                             // Update the button's tag to indicate an obstacle is placed
-                            button.setTag(new int[]{currentRow, currentCol, 1, obstacleDirection}); // Flag set to 1 (obstacle placed)
+                            button.setTag(new int[]{currentRow, currentCol, 1, obstacleDirection, btnIDCounter}); // Flag set to 1 (obstacle placed)
+                            btnLogAdapter.addLog(String.format("Set ID:%d Text: %d [%d,%d]", btnIDCounter, obstacleNumber,currentCol,currentRow));
+                            btnIDCounter++;
 
-                            // Show a toast with the obstacle placement details
-                            String message = String.format("Obstacle %d Placed: (%d,%d)", obstacleNumber, currentCol, currentRow);
-                            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                         }
                     } else if (isSettingCar) {
                         int[] coords = (int[]) button.getTag();
@@ -202,12 +266,16 @@ public class GridFragment extends Fragment {
                             Toast.makeText(getContext(), "Can't place car here (obstacle present)", Toast.LENGTH_SHORT).show();
                             return;
                         }
+                        if (!carSet){
+                            updateTextView();
+                        }
 
                         carSet = true;
 
                         // If there was a previous car placement, reset it
                         if (lastCarCoordinates != null) {
                             resetCarPlacement(lastCarCoordinates);
+
                         }
 
                         // Get the actual coordinates from the button's tag
@@ -271,8 +339,8 @@ public class GridFragment extends Fragment {
                         // Store the current car placement coordinates
                         lastCarCoordinates = new int[]{currentRow, currentCol};
 
-                        String message = "Car placed at: " + String.format("%d %d", lastCarCoordinates[0], lastCarCoordinates[1]);
-                        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                        carLogAdapter.addLog(String.format("Car placed at [%d,%d]", lastCarCoordinates[0], lastCarCoordinates[1]));
+
                     } else {
                         Toast.makeText(getContext(),
                                 "Clicked on cell (" + finalCol + ", " + finalRow + ")",
@@ -318,22 +386,22 @@ public class GridFragment extends Fragment {
 
             switch (roundedRotation) {
                 case 0:
-                    message = "North";
+                    message = "NORTH";
                     break;
                 case 90:
-                    message = "East";
+                    message = "EAST";
                     break;
                 case 180:
-                    message = "South";
+                    message = "SOUTH";
                     break;
                 case 270:
-                    message = "West";
+                    message = "WEST";
                     break;
                 default:
                     message = "Unknown";
                     break;
             }
-
+            carLogAdapter.addLog(String.format("Car facing %s", message));
             String rotationMessage = String.format("Direction: %s", message);
             textViewDirection.setText(rotationMessage);  // Set the text
         }
@@ -442,7 +510,23 @@ public class GridFragment extends Fragment {
                 // Same coordinates: ROTATE
                 int rotation = newCoords[3];
                 rotation = (rotation +1) %4;
-                newButton.setTag(new int[]{originalCoords[0], originalCoords[1], 1, rotation});
+                newButton.setTag(new int[]{originalCoords[0], originalCoords[1], 1, rotation, originalCoords[4]});
+                String message="";
+                switch (rotation) {
+                    case 0: // North
+                        message = "NORTH";
+                        break;
+                    case 1: // East
+                        message = "EAST";
+                        break;
+                    case 2: // South
+                        message = "SOUTH";
+                        break;
+                    case 3: // West
+                        message = "WEST";
+                        break;
+                }
+                btnLogAdapter.addLog(String.format("Rotate ID:%d to %s", originalCoords[4], message));
                 rotateObstacle(newButton,rotation);
 
             } else {
@@ -553,9 +637,11 @@ public class GridFragment extends Fragment {
         newButton.setText(obstacleNumber);
         newButton.setTextColor(getResources().getColor(android.R.color.white));
         int[] originalCoords = (int[]) draggedObstacle.getTag();
-        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3]}); // Clear old position
+        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3], originalCoords[4]}); // Clear old position
         int[] newCoords = (int[]) newButton.getTag();
-        newButton.setTag(new int[]{newCoords[0], newCoords[1], 1, originalCoords[3]}); //set new position.
+        newButton.setTag(new int[]{newCoords[0], newCoords[1], 1, originalCoords[3], originalCoords[4]}); //set new position.
+        btnLogAdapter.addLog(String.format("Move ID:%d [%d,%d]>[%d,%d]", originalCoords[4], originalCoords[1], originalCoords[0],newCoords[1], newCoords[0]));
+
         // Send Bluetooth update
         sendObstacleUpdate(originalRow, originalCol, newCoords[0], newCoords[1]);
 
@@ -570,13 +656,16 @@ public class GridFragment extends Fragment {
 
         draggedObstacle.setBackgroundResource(R.drawable.button_border_color);
         draggedObstacle.setText("");
-        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3]});
+        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3], originalCoords[4]});
+        btnLogAdapter.addLog(String.format("Remove ID:%d [%d,%d]", originalCoords[4], originalCoords[1], originalCoords[0]));
+
         sendObstacleRemoval(originalRow, originalCol);
     }
 
     private void rotateObstacle(Button button, int rotation) {
         Drawable background = button.getBackground();
         LayerDrawable layerDrawable;
+
 
         // If it's the first rotation, it will be a LayerDrawable
         // If it's already been rotated, it will be a RotateDrawable
@@ -791,9 +880,7 @@ public class GridFragment extends Fragment {
             // Place the car at the new position
             placeCarAt(newRow, newCol);
 
-            // Optional: Show a toast with the new position
-            String message = String.format("Car moved to: (%d, %d)", newCol, newRow);
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            carLogAdapter.addLog(String.format("Move to [%d,%d]", newCol, newRow));
         } else {
             // Collision detected, show a warning
             Toast.makeText(getContext(), "Cannot move forward (collision detected)", Toast.LENGTH_SHORT).show();
@@ -815,6 +902,7 @@ public class GridFragment extends Fragment {
         if (startCol + 3 > COLS) {
             startCol = COLS - 3;
         }
+
 
         // Loop through the 3x3 area and update the buttons' background
         for (int r = 0; r < 3; r++) {
@@ -843,6 +931,7 @@ public class GridFragment extends Fragment {
 
                                 child.setBackground(layerDrawable);
                                 child.setPadding(0, 0, 0, 0);
+
                             } else { // Other cells
                                 child.setBackgroundColor(getResources().getColor(android.R.color.holo_orange_light));
                             }
