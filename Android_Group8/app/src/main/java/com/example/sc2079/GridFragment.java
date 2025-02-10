@@ -1,5 +1,7 @@
 package com.example.sc2079;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import androidx.gridlayout.widget.GridLayout;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 
 import android.widget.TextView;
@@ -47,8 +50,13 @@ public class GridFragment extends Fragment {
     // Store the coordinates of the previously placed car's 3x3 grid
     private int[] lastCarCoordinates = null;
 
+    // Intent used to send instructions to the rpi from the gridfragment
+    Intent instructionToSend;
+    //Context mContext;
+
     public GridFragment() {
         // Required empty public constructor
+        //this.mContext = getActivity();
     }
 
     public static GridFragment newInstance(String param1, String param2) {
@@ -754,16 +762,29 @@ public class GridFragment extends Fragment {
             // Send a message to the rpi with the move instruction
             switch (Math.floorMod(Math.round(triangleRotation), 360)) {
                 case 0: // North
-                    newRow = currentRow + direction;
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "NORTH");
+                    // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
                 case 90: // East
-                    newCol = currentCol + direction;
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "EAST");
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
                 case 180: // South
-                    newRow = currentRow - direction;
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "SOUTH");
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
                 case 270: // West
-                    newCol = currentCol - direction;
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "WEST");
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
             }
         } else {

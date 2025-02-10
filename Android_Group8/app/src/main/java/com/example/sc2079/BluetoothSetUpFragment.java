@@ -12,7 +12,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,13 +22,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.json.JSONException;
@@ -37,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-public class BluetoothSetUpActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
+public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnItemClickListener{
     public static final String TAG = "BluetoothSetUp"; // Helps to filter logs from BluetoothActivity
 
     BluetoothAdapter mBluetoothAdapter;
@@ -60,6 +59,81 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
     // Stuff that is used for reconnecting
     Handler reconnectionHandler = new Handler();
     boolean retryConnection = false; // this flag tells us whether or not we have tried reconnecting yet
+
+
+    ConstraintLayout btFragmentLayout;
+
+    public static BluetoothSetUpFragment newInstance(String param1, String param2){
+        BluetoothSetUpFragment fragment = new BluetoothSetUpFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    // Used for UI elements in the Bluetooth Setup Page
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
+        View rootView =  inflater.inflate(R.layout.fragment_bluetooth, container, false);
+
+        //getBTPermission(); //Call the permissions, NO LONGER NEEDED WE DO IT IN MAINACTIVITY
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); // Initialise bluetooth adapter
+        lvNewDevices = (ListView) rootView.findViewById(R.id.lvNewDevices); // Initialise List View
+        lvPairedDevices = (ListView) rootView.findViewById(R.id.lvPairedDevices);
+        mBTDevices = new ArrayList<>(); // Initialise a new list of Devices
+        mBTPairedDevices = new ArrayList<>();
+
+        btnStartConnection = (Button) rootView.findViewById(R.id.btnStartConnection);
+        btnSend = (Button) rootView.findViewById(R.id.btnSend);
+        etSend = (EditText) rootView.findViewById(R.id.etSend);
+
+        incomingMessages = (TextView) rootView.findViewById(R.id.incomingMessage);
+        messages = new StringBuilder();
+
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mReceiver, new IntentFilter("incomingMessage"));
+
+        lvNewDevices.setOnItemClickListener(BluetoothSetUpFragment.this);
+        lvPairedDevices.setOnItemClickListener(BluetoothSetUpFragment.this);
+
+        checkForPairedDevices();// Check for paired devices
+        // Broadcasts when bond state change (E.G PAIRING)
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        getContext().registerReceiver(mBroadcastReceiver3, filter);
+
+        // BroadcastReceiver related to Connection Events
+        IntentFilter filter2 = new IntentFilter("ConnectionStatus");
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver4, filter2);
+
+        // BroadcastReceiver related to Sending Messages
+        IntentFilter filter3 = new IntentFilter("SendInstruction");
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver5, filter3);
+
+        Button btnBTOn = rootView.findViewById(R.id.btnBTOn);
+        btnBTOn.setOnClickListener(view -> enableBluetooth());
+
+        Button btnScan = rootView.findViewById(R.id.btnScan);
+        btnScan.setOnClickListener(view -> discoverBluetooth());
+
+        btnStartConnection.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                startConnection();
+            }
+        });
+
+        btnSend.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                byte[] bytes = etSend.getText().toString().getBytes(Charset.defaultCharset());
+                mBluetoothConnection.write(bytes);
+
+                etSend.setText("");
+            }
+        });
+
+        return rootView;
+    }
 
     Runnable reconnectionRunnable = new Runnable() {
         @Override
@@ -116,7 +190,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 Log.d(TAG, "Bluetooth device scanning finished.");
                 Toast.makeText(context, "Scan completed", Toast.LENGTH_LONG).show();
-                unregisterReceiver(mBroadcastReceiver2);
+                getContext().unregisterReceiver(mBroadcastReceiver2);
             }
         }
     };
@@ -163,7 +237,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
                 Toast.makeText(context, "Disconnected from " + mDevice.getName(), Toast.LENGTH_SHORT).show();
 
                 // Attempt to reconnect
-                mBluetoothConnection = new BluetoothConnectionService(getApplicationContext());
+                mBluetoothConnection = new BluetoothConnectionService(getActivity());
 
                 retryConnection = true; // By setting this to true, we only try to reconnect once
                 reconnectionHandler.postDelayed(reconnectionRunnable, 5000); // wait 5s before trying to reconnect
@@ -221,117 +295,6 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
         }
     };
 
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "onDestory: called.");
-        super.onDestroy();
-
-        try {
-            unregisterReceiver(mBroadcastReceiver1);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver mBroadcastReceiver1 not registered.");
-        }
-
-        try {
-            unregisterReceiver(mBroadcastReceiver2);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver mBroadcastReceiver2 not registered.");
-        }
-
-        try {
-            unregisterReceiver(mBroadcastReceiver3);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver mBroadcastReceiver3 not registered.");
-        }
-
-        try {
-            unregisterReceiver(mBroadcastReceiver4);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver mBroadcastReceiver4 not registered. (Connection Status BroadcastReceiver");
-        }
-
-        try{
-            unregisterReceiver(mBroadcastReceiver5);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver mBroadcastReceiver5 not registered. (Send Instruction BroadcastReceiver");
-        }
-
-        try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver mReceiver not registered.");
-        }
-
-        mBluetoothAdapter.cancelDiscovery();
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_bluetooth);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        getBTPermission(); //Call the permissions
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter(); // Initialise bluetooth adapter
-        lvNewDevices = (ListView) findViewById(R.id.lvNewDevices); // Initialise List View
-        lvPairedDevices = (ListView) findViewById(R.id.lvPairedDevices);
-        mBTDevices = new ArrayList<>(); // Initialise a new list of Devices
-        mBTPairedDevices = new ArrayList<>();
-
-        btnStartConnection = (Button) findViewById(R.id.btnStartConnection);
-        btnSend = (Button) findViewById(R.id.btnSend);
-        etSend = (EditText) findViewById(R.id.etSend);
-
-        incomingMessages = (TextView) findViewById(R.id.incomingMessage);
-        messages = new StringBuilder();
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("incomingMessage"));
-
-        lvNewDevices.setOnItemClickListener(BluetoothSetUpActivity.this);
-        lvPairedDevices.setOnItemClickListener(BluetoothSetUpActivity.this);
-
-        checkForPairedDevices();// Check for paired devices
-        // Broadcasts when bond state change (E.G PAIRING)
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        registerReceiver(mBroadcastReceiver3, filter);
-
-        // BroadcastReceiver related to Connection Events
-        IntentFilter filter2 = new IntentFilter("ConnectionStatus");
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver4, filter2);
-
-        // BroadcastReceiver related to Sending Messages
-        IntentFilter filter3 = new IntentFilter("SendInstruction");
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver5, filter3);
-
-        Button btnBTOn = findViewById(R.id.btnBTOn);
-        btnBTOn.setOnClickListener(view -> enableBluetooth());
-
-        Button btnScan = findViewById(R.id.btnScan);
-        btnScan.setOnClickListener(view -> discoverBluetooth());
-
-        btnStartConnection.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                startConnection();
-            }
-        });
-
-        btnSend.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                byte[] bytes = etSend.getText().toString().getBytes(Charset.defaultCharset());
-                mBluetoothConnection.write(bytes);
-
-                etSend.setText("");
-            }
-        });
-
-    }
-
     // Create method for starting connection
     // Connection will fail and app will crash if not paired.
     public void startConnection(){
@@ -345,26 +308,12 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
         mBluetoothConnection.startClientThread(device,uuid);
     }
 
-    public void getBTPermission(){
-        // For some reason, we need to ask for bluetooth permission during runtime to enable.
-        // Therefore, we got to repeat the permissions.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // For Android 12 and above, request Bluetooth permissions
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{
-                        android.Manifest.permission.BLUETOOTH_CONNECT,
-                        android.Manifest.permission.BLUETOOTH_SCAN,
-                        Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            }
-        }
-    }
+
 
     private void enableBluetooth(){
         //  If device does not support bluetooth
         if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "Device does not support Bluetooth", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Device does not support Bluetooth", Toast.LENGTH_LONG).show();
             Log.d(TAG, "Device does not support Bluetooth");
         }
         if (!mBluetoothAdapter.isEnabled()) {
@@ -373,10 +322,10 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
 
             // The broadcast receiver will catch the state change from the bluetooth when we enable
             IntentFilter BTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            registerReceiver(mBroadcastReceiver1, BTIntent);
+            getContext().registerReceiver(mBroadcastReceiver1, BTIntent);
         }
         if (mBluetoothAdapter.isEnabled()){
-            Toast.makeText(this, "Bluetooth is already enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Bluetooth is already enabled", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -390,7 +339,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
                     String deviceName = device.getName();
                     String deviceHardwareAddress = device.getAddress(); // MAC address
                     Log.d(TAG, "Paired Device: " + deviceName + ", " + deviceHardwareAddress);
-                    mDeviceListAdapter = new DeviceListAdapter(this, R.layout.list_item_bluetooth, mBTPairedDevices);
+                    mDeviceListAdapter = new DeviceListAdapter(getContext(), R.layout.list_item_bluetooth, mBTPairedDevices);
                     lvPairedDevices.setAdapter(mDeviceListAdapter);
                 }
             }
@@ -402,7 +351,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
 
     public void discoverBluetooth(){
         if (!mBluetoothAdapter.isEnabled()) {
-            Toast.makeText(this, "Please enable bluetooth first!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please enable bluetooth first!", Toast.LENGTH_SHORT).show();
             return;
         }
         if (mBluetoothAdapter.isDiscovering()) {
@@ -411,12 +360,12 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
             return;
         }
         Log.d(TAG, "Scanning for bluetooth devices");
-        Toast.makeText(this, "Scanning for bluetooth devices", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Scanning for bluetooth devices", Toast.LENGTH_SHORT).show();
         mBTDevices.clear(); // Reset to 0
         mBluetoothAdapter.startDiscovery();
         IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         discoverDevicesIntent.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(mBroadcastReceiver2, discoverDevicesIntent);
+        getContext().registerReceiver(mBroadcastReceiver2, discoverDevicesIntent);
     }
 
     @Override
@@ -434,7 +383,7 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
 
             //Start connection service after bonding
             mBTDevice = mBTDevices.get(i);
-            mBluetoothConnection = new BluetoothConnectionService(this);
+            mBluetoothConnection = new BluetoothConnectionService(getContext());
 
         } else if (adapterView.getId() == R.id.lvPairedDevices) {
             // This is the ListView for paired devices found during scanning
@@ -446,12 +395,12 @@ public class BluetoothSetUpActivity extends AppCompatActivity implements Adapter
 
             // Try to pair with the selected device
             Log.d(TAG, "Trying to pair with " + deviceName);
-            Toast.makeText(this, "Trying to pair with " + deviceName, Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Trying to pair with " + deviceName, Toast.LENGTH_LONG).show();
             mBTPairedDevices.get(i).createBond();
 
             //Start connection service after bonding
             mBTDevice = mBTPairedDevices.get(i);
-            mBluetoothConnection = new BluetoothConnectionService(this);
+            mBluetoothConnection = new BluetoothConnectionService(getContext());
         }
     }
 }
