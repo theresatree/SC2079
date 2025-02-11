@@ -6,57 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".GridFragment">
 
-    <TextView
-        android:id="@+id/textViewDirection"
-        android:layout_width="192dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="48dp"
-        android:layout_marginTop="100dp"
-        android:text="Direction of Car"
-        app:layout_constraintBottom_toTopOf="@+id/btnUp"
-        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/btnRight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="Right"
-        app:layout_constraintBottom_toTopOf="@+id/btnDown"
-        app:layout_constraintStart_toEndOf="@+id/btnLeft"
-        app:layout_constraintTop_toBottomOf="@+id/btnUp" />
-
-    <Button
-        android:id="@+id/btnDown"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
-        android:text="Down"
-        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
-        app:layout_constraintTop_toBottomOf="@+id/btnRight" />
-
-    <Button
-        android:id="@+id/btnLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Left"
-        app:layout_constraintBottom_toTopOf="@+id/btnDown"
-        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
-        app:layout_constraintTop_toBottomOf="@+id/btnUp"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/btnUp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
-        android:text="Up"
-        app:layout_constraintBottom_toTopOf="@+id/btnRight"
-        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle" />
-
     <Button
         android:id="@+id/btnSetCar"
         android:layout_width="wrap_content"
@@ -75,20 +24,138 @@
         android:layout_marginTop="28dp"
         android:text="Set Obstacle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.166"
+        app:layout_constraintHorizontal_bias="0.168"
         app:layout_constraintStart_toEndOf="@+id/btnSetCar"
-        app:layout_constraintTop_toBottomOf="@+id/gridLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/gridLayout"
+        tools:layout_editor_absoluteY="28dp" />
 
     <androidx.gridlayout.widget.GridLayout
         android:id="@+id/gridLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:columnCount="15"
+        app:layout_constraintBottom_toTopOf="@+id/columnText"
+        app:layout_constraintStart_toEndOf="@+id/rowText"
+        app:layout_constraintTop_toTopOf="parent"
+        app:rowCount="20" />
+
+    <LinearLayout
+        android:id="@+id/columnText"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        app:columnCount="15"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:rowCount="20">
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/btnSetCar"
+        app:layout_constraintStart_toEndOf="@+id/rowText"
+        app:layout_constraintTop_toBottomOf="@+id/gridLayout" />
 
-    </androidx.gridlayout.widget.GridLayout>
+    <LinearLayout
+        android:id="@+id/rowText"
+        android:layout_width="26dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="0dp"
+        android:orientation="vertical"
+        android:padding="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/gridLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvBtnLog"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginBottom="7dp"
+        app:layout_constraintBottom_toTopOf="@+id/textView2"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle" />
+
+    <Button
+        android:id="@+id/btnLeft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:text="Left"
+        app:layout_constraintBottom_toTopOf="@+id/btnDown"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
+        app:layout_constraintTop_toBottomOf="@+id/btnUp"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/btnDown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="88dp"
+        android:text="Down"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
+        app:layout_constraintTop_toBottomOf="@+id/btnRight" />
+
+    <Button
+        android:id="@+id/btnUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="88dp"
+        android:text="Up"
+        app:layout_constraintBottom_toTopOf="@+id/btnRight"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle" />
+
+    <TextView
+        android:id="@+id/textViewDirection"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_marginStart="76dp"
+        android:layout_marginTop="300dp"
+        android:text="Direction of Car"
+        app:layout_constraintBottom_toTopOf="@+id/btnUp"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/btnRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="Right"
+        app:layout_constraintStart_toEndOf="@+id/btnLeft"
+        app:layout_constraintTop_toBottomOf="@+id/btnUp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCarLog"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewDirection"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="104dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="5dp"
+        android:text="Car Log"
+        app:layout_constraintBottom_toTopOf="@+id/rvCarLog"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="88dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="5dp"
+        android:text="Button Log"
+        app:layout_constraintBottom_toTopOf="@+id/rvBtnLog"
+        app:layout_constraintStart_toEndOf="@+id/btnSetObstacle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
