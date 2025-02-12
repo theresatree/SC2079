@@ -1,7 +1,9 @@
 package com.example.sc2079;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -18,7 +20,9 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -129,22 +133,12 @@ public class GridFragment extends Fragment {
 
         btnLeft.setOnClickListener(v -> {
             if (carSet) {
-                triangleRotation = (triangleRotation - 90f) % 360f;  // decrement rotation by 90 degrees
-                if (triangleRotation < 0) {
-                    triangleRotation += 360f;  // Ensure the rotation value stays within 0-360 degrees range
-                }
-                updateTextView();
-                updateTriangleRotation(); // Update the triangle in the grid
+                rotateCar(-1);
             }
         });
         btnRight.setOnClickListener(v -> {
             if (carSet) {
-                triangleRotation = (triangleRotation + 90f) % 360f;  // Increment rotation by 90 degrees
-                if (triangleRotation >= 360) {
-                    triangleRotation -= 360f;  // Ensure the rotation value stays within 0-360 degrees range
-                }
-                updateTextView();
-                updateTriangleRotation(); // Update the triangle in the grid
+                rotateCar(1);
             }
         });
 
@@ -212,10 +206,11 @@ public class GridFragment extends Fragment {
 
     private void populateGrid() {
         // Create buttons grid - starting from bottom-left
-        for (int row = ROWS - 1; row >= 0; row--){
+        for (int row = ROWS - 1; row >= 0; row--) {
             for (int col = 0; col < COLS; col++) {
                 Button button = new Button(getContext());
 
+                // Set fixed size for the button
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
                 int cellSize = 22;
                 int widthInPixels = (int) (getResources().getDisplayMetrics().density * cellSize);
@@ -231,13 +226,27 @@ public class GridFragment extends Fragment {
                 button.setBackgroundResource(R.drawable.button_border_color);
                 button.setPadding(0, 0, 0, 0);
 
+                // Ensure the text is always centered vertically and horizontally
+                button.setGravity(Gravity.CENTER); // Center both vertically and horizontally
+                button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8); // Smaller text size to prevent overflow
+                button.setTextColor(getResources().getColor(android.R.color.white));
+
+                // Set a small margin and padding to keep text within bounds
+                button.setPadding(0, 0, 0, 0);  // Remove extra padding around text
+
                 final int finalRow = row;
                 final int finalCol = col;
 
-                button.setTag(new int[]{finalRow, finalCol, 0, 0, -1}); // Store coordinates in button's tag, and also whether it has been placed.
+                button.setTag(new int[]{finalRow, finalCol, 0, 0, -1, 0});
+                // [0] = row
+                // [1] = col
+                // [2] = status
+                // [3] = direction
+                // [4] = id
+                // [5] = text
 
                 button.setOnClickListener(v -> {
-                    if (isSettingObstacle  && !isDragging) {
+                    if (isSettingObstacle && !isDragging) {
                         int[] coords = (int[]) button.getTag();
                         if (!canPlaceObstacle(coords)) {
                             Toast.makeText(getContext(), "Can't place obstacle here", Toast.LENGTH_SHORT).show();
@@ -258,15 +267,20 @@ public class GridFragment extends Fragment {
                             } else {
                                 obstacleNumber = obstacleCounter++; // Use the next available number
                             }
-                            // Set the text for the obstacle
+
+                            // Set the text for the obstacle (ensure it fits within the button without causing layout issues)
                             button.setText(String.valueOf(obstacleNumber));
-                            button.setTextColor(getResources().getColor(android.R.color.white)); // Ensure visibility
+                            button.setMaxLines(1); // Keep the text in one line to avoid overflow
+                            button.setEllipsize(TextUtils.TruncateAt.END); // Ensure no overflow
+
+                            // Keep the text vertically centered and prevent shifting
+                            button.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
 
                             // Update the button's tag to indicate an obstacle is placed
-                            button.setTag(new int[]{currentRow, currentCol, 1, obstacleDirection, btnIDCounter}); // Flag set to 1 (obstacle placed)
-                            btnLogAdapter.addLog(String.format("Set ID:%d Text: %d [%d,%d]", btnIDCounter, obstacleNumber,currentCol,currentRow));
+                            button.setTag(new int[]{currentRow, currentCol, 1, obstacleDirection, btnIDCounter, obstacleNumber}); // Flag set to 1 (obstacle placed)
+                            btnLogAdapter.addLog(String.format("Set ID:%d Text: %d [%d,%d]", btnIDCounter, obstacleNumber, currentCol, currentRow));
+                            sendObstacleUpdate(button);
                             btnIDCounter++;
-
                         }
                     } else if (isSettingCar) {
                         int[] coords = (int[]) button.getTag();
@@ -284,6 +298,42 @@ public class GridFragment extends Fragment {
                         if (lastCarCoordinates != null) {
                             resetCarPlacement(lastCarCoordinates);
 
+                        }
+
+                        switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+                            case 0: // North
+                                instructionToSend = new Intent("SendInstruction");
+                                instructionToSend.putExtra("type", "MOVE-CAR");
+                                instructionToSend.putExtra("direction", "NORTH");
+                                instructionToSend.putExtra("carXAxis", String.valueOf(coords[1]));
+                                instructionToSend.putExtra("carYAxis", String.valueOf(coords[0]));
+                                // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
+                                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                                break;
+                            case 90: // East
+                                instructionToSend = new Intent("SendInstruction");
+                                instructionToSend.putExtra("type", "MOVE-CAR");
+                                instructionToSend.putExtra("direction", "EAST");
+                                instructionToSend.putExtra("carXAxis", String.valueOf(coords[1]));
+                                instructionToSend.putExtra("carYAxis", String.valueOf(coords[0]));
+                                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                                break;
+                            case 180: // South
+                                instructionToSend = new Intent("SendInstruction");
+                                instructionToSend.putExtra("type", "MOVE-CAR");
+                                instructionToSend.putExtra("direction", "SOUTH");
+                                instructionToSend.putExtra("carXAxis", String.valueOf(coords[1]));
+                                instructionToSend.putExtra("carYAxis", String.valueOf(coords[0]));
+                                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                                break;
+                            case 270: // West
+                                instructionToSend = new Intent("SendInstruction");
+                                instructionToSend.putExtra("type", "MOVE-CAR");
+                                instructionToSend.putExtra("direction", "WEST");
+                                instructionToSend.putExtra("carXAxis", String.valueOf(coords[1]));
+                                instructionToSend.putExtra("carYAxis", String.valueOf(coords[0]));
+                                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                                break;
                         }
 
                         // Get the actual coordinates from the button's tag
@@ -518,7 +568,7 @@ public class GridFragment extends Fragment {
                 // Same coordinates: ROTATE
                 int rotation = newCoords[3];
                 rotation = (rotation +1) %4;
-                newButton.setTag(new int[]{originalCoords[0], originalCoords[1], 1, rotation, originalCoords[4]});
+                newButton.setTag(new int[]{originalCoords[0], originalCoords[1], 1, rotation, originalCoords[4],originalCoords[5]});
                 String message="";
                 switch (rotation) {
                     case 0: // North
@@ -536,6 +586,7 @@ public class GridFragment extends Fragment {
                 }
                 btnLogAdapter.addLog(String.format("Rotate ID:%d to %s", originalCoords[4], message));
                 rotateObstacle(newButton,rotation);
+                sendObstacleUpdate(newButton);
 
             } else {
                 // Different coordinates: MOVE
@@ -562,15 +613,10 @@ public class GridFragment extends Fragment {
         int newCol = newCoords[1];
         int obstaclePlaced = newCoords[2];
 
-        // Check if the new position overlaps with any existing obstacles
-        for (int r = -1; r <= 1; r++) {
-            for (int c = -1; c <= 1; c++) {
-                int targetRow = newRow + r;
-                int targetCol = newCol + c;
 
                 // Skip if out of bounds
-                if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
-                    continue;
+                if (newRow < 0 || newRow >= ROWS || newCol < 0 || newCol >= COLS) {
+                    return true;
                 }
 
                 // Find the button at the target position
@@ -579,8 +625,8 @@ public class GridFragment extends Fragment {
                     if (child instanceof Button) {
                         int[] buttonCoords = (int[]) child.getTag();
                         if (buttonCoords != null &&
-                                buttonCoords[0] == targetRow &&
-                                buttonCoords[1] == targetCol) {
+                                buttonCoords[0] == newRow &&
+                                buttonCoords[1] == newCol) {
 
                             // Check if the button is an obstacle or part of the car
                             Drawable background = child.getBackground();
@@ -591,11 +637,14 @@ public class GridFragment extends Fragment {
                                     return true; // Collision detected
                                 }
                             }
+                            else if (buttonCoords[2]==1){
+                                return true;
+                            }
                         }
                     }
                 }
-            }
-        }
+
+
 
         return false; // No collision detected
     }
@@ -640,19 +689,73 @@ public class GridFragment extends Fragment {
         draggedObstacle.setBackgroundResource(R.drawable.button_border_color);
         draggedObstacle.setText("");
 
-        // Set new position
+        // Preserve original text size before moving
+        float originalTextSizePx = draggedObstacle.getTextSize(); // Get text size in PX
+        float originalTextSizeSp = originalTextSizePx / draggedObstacle.getResources().getDisplayMetrics().scaledDensity; // Convert to SP
+
+        // Set new button properties
         newButton.setBackground(getResources().getDrawable(R.drawable.custom_obstacle_color));
-        newButton.setText(obstacleNumber);
         newButton.setTextColor(getResources().getColor(android.R.color.white));
+
+        // Apply the same text size as the original button
+        newButton.post(() -> {
+            // Preserve the original width and height of the button
+            int fixedWidth = newButton.getWidth();
+            int fixedHeight = newButton.getHeight();
+
+            // Set the text and apply the correct text size
+            newButton.setText(obstacleNumber);
+
+            if (originalTextSizeSp == 8f) {
+                // For 8sp, use custom layout for the button
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                int cellSize = 22; // You can adjust this size if necessary
+                int widthInPixels = (int) (getResources().getDisplayMetrics().density * cellSize);
+                int heightInPixels = (int) (getResources().getDisplayMetrics().density * cellSize);
+
+                params.width = widthInPixels;
+                params.height = heightInPixels;
+                params.setMargins(0, 0, 0, 0);
+
+                newButton.setLayoutParams(params);
+                newButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8); // Smaller text size for 8sp
+
+                newButton.setPadding(0, 0, 0, 0); // Set padding to 0 for no overflow
+                newButton.setGravity(Gravity.CENTER); // Center the text vertically and horizontally
+            } else if (originalTextSizeSp == 11f) {
+                // For 11sp, keep the layout as before
+                newButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11); // Apply 11sp text size
+
+                // Lock size to prevent resizing
+                ViewGroup.LayoutParams params = newButton.getLayoutParams();
+                params.width = fixedWidth;
+                params.height = fixedHeight; // Keep the original fixed height
+                newButton.setLayoutParams(params);
+
+                // Prevent shrinking of button by setting the minimum size
+                newButton.setMinimumHeight(fixedHeight);  // Prevent shrinking height
+                newButton.setMinimumWidth(fixedWidth);   // Prevent shrinking width
+
+                newButton.setIncludeFontPadding(false); // Ensure font padding doesn't cause overflow
+                newButton.setGravity(Gravity.CENTER); // Center the text
+            }
+
+            // Force layout recalculation
+            newButton.requestLayout(); // Forces a layout pass
+            newButton.invalidate(); // Ensures a fresh redraw after layout changes
+        });
+
+        // Update button position tags
         int[] originalCoords = (int[]) draggedObstacle.getTag();
-        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3], originalCoords[4]}); // Clear old position
+        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3], originalCoords[4], originalCoords[5]}); // Clear old position
         int[] newCoords = (int[]) newButton.getTag();
-        newButton.setTag(new int[]{newCoords[0], newCoords[1], 1, originalCoords[3], originalCoords[4]}); //set new position.
-        btnLogAdapter.addLog(String.format("Move ID:%d [%d,%d]>[%d,%d]", originalCoords[4], originalCoords[1], originalCoords[0],newCoords[1], newCoords[0]));
+        newButton.setTag(new int[]{newCoords[0], newCoords[1], 1, originalCoords[3], originalCoords[4], originalCoords[5]}); // Set new position
+
+        btnLogAdapter.addLog(String.format("Move ID:%d [%d,%d]>[%d,%d]",
+                originalCoords[4], originalCoords[1], originalCoords[0], newCoords[1], newCoords[0]));
 
         // Send Bluetooth update
-        sendObstacleUpdate(originalRow, originalCol, newCoords[0], newCoords[1]);
-
+        sendObstacleUpdate(newButton);
     }
 
     private void removeObstacle(int[] originalCoords){
@@ -664,10 +767,10 @@ public class GridFragment extends Fragment {
 
         draggedObstacle.setBackgroundResource(R.drawable.button_border_color);
         draggedObstacle.setText("");
-        draggedObstacle.setTag(new int[]{originalCoords[0], originalCoords[1], 0, originalCoords[3], originalCoords[4]});
+        draggedObstacle.setTag(new int[]{-1, -1, 0, originalCoords[3], originalCoords[4], originalCoords[5]});
         btnLogAdapter.addLog(String.format("Remove ID:%d [%d,%d]", originalCoords[4], originalCoords[1], originalCoords[0]));
 
-        sendObstacleRemoval(originalRow, originalCol);
+        sendObstacleUpdate(draggedObstacle);
     }
 
     private void rotateObstacle(Button button, int rotation) {
@@ -699,20 +802,30 @@ public class GridFragment extends Fragment {
     }
 
 
-    private void sendObstacleUpdate(int oldX, int oldY, int newX, int newY) {
-        String message = String.format("Obstacle Moved: (%d,%d) to (%d,%d)", oldX, oldY, newX, newY);
-        if (getContext() != null) {  // Ensure context is not null
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-        }        // Implement your Bluetooth sending logic here
+    private void sendObstacleUpdate(Button button) {
+        int[] data = (int[]) button.getTag();
+        int currentRow = data[0];
+        int currentCol = data[1];
+        int obstaclePlaced = data[2];
+        int obstacleDirection = data[3];
+        int obstacleID = data[4];
+        int obstacleText = data[5];
+
+        Intent intent = new Intent("SendInstruction");  // Set the action to "OBSTACLE"
+
+        // Add the data to the intent
+        intent.putExtra("type", "OBSTACLE");  // Set type to OBSTACLE
+        intent.putExtra("obstacleID", String.valueOf(obstacleID));
+        intent.putExtra("obstacleXAxis", String.valueOf(currentCol));
+        intent.putExtra("obstacleYAxis", String.valueOf(currentRow));
+        intent.putExtra("obstacleText", String.valueOf(obstacleText));
+        intent.putExtra("obstacleDirection", String.valueOf(obstacleDirection));
+        intent.putExtra("obstacleStatus", String.valueOf(obstaclePlaced));
+
+        // Send the broadcast
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
     }
 
-    private void sendObstacleRemoval(int x, int y) {
-        String message = String.format("Obstacle Removed: (%d,%d)", x, y);
-        if (getContext() != null) {  // Ensure context is not null
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-        }
-        // Implement your Bluetooth sending logic here
-    }
 
     // Method to reset the previous car's 3x3 grid
     private void resetCarPlacement(int[] carCoordinates) {
@@ -811,39 +924,33 @@ public class GridFragment extends Fragment {
         int col = obstacleCoordinates[1];
 
 
-        // Check if the 3x3 area around the clicked spot is free from cars (orange color)
-        for (int r = -1; r <= 1; r++) {
-            for (int c = -1; c <= 1; c++) {
-                int targetRow = row + r;
-                int targetCol = col + c;
+        // Skip if out of bounds
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLS) {
+            return false;
+        }
 
-                // Skip if out of bounds
-                if (targetRow < 0 || targetRow >= ROWS || targetCol < 0 || targetCol >= COLS) {
-                    continue;
-                }
+        // Find the button and check its background color
+        for (int i = 0; i < gridLayout.getChildCount(); i++) {
+            View child = gridLayout.getChildAt(i);
+            if (child instanceof Button) {
+                int[] buttonCoords = (int[]) child.getTag();
+                if (buttonCoords != null &&
+                        buttonCoords[0] == row &&
+                        buttonCoords[1] == col) {
 
-                // Find the button and check its background color
-                for (int i = 0; i < gridLayout.getChildCount(); i++) {
-                    View child = gridLayout.getChildAt(i);
-                    if (child instanceof Button) {
-                        int[] buttonCoords = (int[]) child.getTag();
-                        if (buttonCoords != null &&
-                                buttonCoords[0] == targetRow &&
-                                buttonCoords[1] == targetCol) {
-
-                            // Check if the button's background is orange (car)
-                            Drawable background = child.getBackground();
-                            if (background instanceof ColorDrawable) {
-                                int color = ((ColorDrawable) background).getColor();
-                                if (color == getResources().getColor(android.R.color.holo_orange_light)) {
-                                    return false; // Can't place obstacle if there's a car
-                                }
-                            }
+                    // Check if the button's background is orange (car)
+                    Drawable background = child.getBackground();
+                    if (background instanceof ColorDrawable) {
+                        int color = ((ColorDrawable) background).getColor();
+                        if (color == getResources().getColor(android.R.color.holo_orange_light)) {
+                            return false; // Can't place obstacle if there's a car
                         }
                     }
                 }
             }
         }
+
+
         return true; // If no cars were found, return true
     }
 
@@ -898,6 +1005,8 @@ public class GridFragment extends Fragment {
                     instructionToSend = new Intent("SendInstruction");
                     instructionToSend.putExtra("type", "MOVE-CAR");
                     instructionToSend.putExtra("direction", "NORTH");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
                     // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
@@ -905,18 +1014,24 @@ public class GridFragment extends Fragment {
                     instructionToSend = new Intent("SendInstruction");
                     instructionToSend.putExtra("type", "MOVE-CAR");
                     instructionToSend.putExtra("direction", "EAST");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
                 case 180: // South
                     instructionToSend = new Intent("SendInstruction");
                     instructionToSend.putExtra("type", "MOVE-CAR");
                     instructionToSend.putExtra("direction", "SOUTH");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
                 case 270: // West
                     instructionToSend = new Intent("SendInstruction");
                     instructionToSend.putExtra("type", "MOVE-CAR");
                     instructionToSend.putExtra("direction", "WEST");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
             }
@@ -924,6 +1039,136 @@ public class GridFragment extends Fragment {
         } else {
             // Collision detected, show a warning
             Toast.makeText(getContext(), "Cannot move forward (collision detected)", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void rotateCar(int turnDirection) {
+        if (lastCarCoordinates == null) {
+            return; // No car placed yet
+        }
+
+        // Validate turnDirection input
+        if (turnDirection != 1 && turnDirection != -1) {
+            throw new IllegalArgumentException("Invalid turn direction. Use 1 for right or -1 for left.");
+        }
+
+        int currentRow = lastCarCoordinates[0];
+        int currentCol = lastCarCoordinates[1];
+
+        // Calculate the new position based on the turn direction and current orientation
+        int newRow = currentRow;
+        int newCol = currentCol;
+
+        switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+            case 0: // North
+                if (turnDirection == 1) {
+                    newRow += 1; // Turn right (East)
+                    newCol += 1;
+                } else {
+                    newRow += 1; // Turn left (West)
+                    newCol -= 1;
+                }
+                break;
+            case 90: // East
+                if (turnDirection == 1) {
+                    newRow -= 1; // Turn right (South)
+                    newCol += 1;
+                } else {
+                    newRow += 1; // Turn left (North)
+                    newCol += 1;
+                }
+                break;
+            case 180: // South
+                if (turnDirection == 1) {
+                    newRow -= 1; // Turn right (West)
+                    newCol -= 1;
+                } else {
+                    newRow -= 1; // Turn left (East)
+                    newCol += 1;
+                }
+                break;
+            case 270: // West
+                if (turnDirection == 1) {
+                    newRow += 1; // Turn right (North)
+                    newCol -= 1;
+                } else {
+                    newRow -= 1; // Turn left (South)
+                    newCol -= 1;
+                }
+                break;
+        }
+
+        // Check if the new position is valid using canPlaceCar()
+        int[] newCarCoordinates = {newRow, newCol};
+        if (canPlaceCar(newCarCoordinates)) {
+            // Reset the current car placement
+            resetCarPlacement(lastCarCoordinates);
+
+            // Update the car's position
+            lastCarCoordinates[0] = newRow;
+            lastCarCoordinates[1] = newCol;
+
+            // Update the car's rotation
+            triangleRotation += (turnDirection == 1) ? 90 : -90; // Turn right or left
+            triangleRotation = Math.floorMod(Math.round(triangleRotation), 360); // Normalize rotation
+
+            // Place the car at the new position
+            placeCarAt(newRow, newCol);
+
+            // Update the triangle rotation visual
+            updateTriangleRotation();
+
+            // Update the TextView with the new direction
+            updateTextView();
+
+            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+                case 0: // North
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "NORTH");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+                    // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                    break;
+                case 90: // East
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "EAST");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                    break;
+                case 180: // South
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "SOUTH");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                    break;
+                case 270: // West
+                    instructionToSend = new Intent("SendInstruction");
+                    instructionToSend.putExtra("type", "MOVE-CAR");
+                    instructionToSend.putExtra("direction", "WEST");
+                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+                    break;
+            }
+
+//            // Send a message to the RPi with the rotation instruction
+//            Intent instructionToSend = new Intent("SendInstruction");
+//            instructionToSend.putExtra("type", "ROTATE-CAR");
+//            instructionToSend.putExtra("direction", (turnDirection == 1) ? "RIGHT" : "LEFT");
+//            instructionToSend.putExtra("rotation", triangleRotation);
+//            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+
+            // Log the rotation
+            carLogAdapter.addLog(String.format("Rotated to [%d,%d]", newCol, newRow));
+        } else {
+            // Collision detected, show a warning
+            Toast.makeText(getContext(), "Cannot rotate (collision detected)", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -980,5 +1225,82 @@ public class GridFragment extends Fragment {
                 }
             }
         }
+    }
+
+    private BroadcastReceiver mObstacleUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Retrieve the obstacle data from the received intent
+            int obstacleID = intent.getIntExtra("obstacleID", -1);  // Default value is -1 if no data is found
+            String obstacleText = intent.getStringExtra("obstacleText");
+
+            // Log the received obstacle data
+            Log.d(TAG, "Received OBSTACLE-INCOMING - ID: " + obstacleID + ", Text: " + obstacleText);
+
+            // Update the UI or process the data as needed
+            getObstacleUpdate(obstacleID, obstacleText);
+        }
+    };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Register the receiver to listen for the "obstacleUpdate" intent
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mObstacleUpdateReceiver, new IntentFilter("obstacleUpdate"));
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Unregister the receiver to avoid memory leaks
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mObstacleUpdateReceiver);
+    }
+
+    private void getObstacleUpdate(int obstacleID, String obstacleText) {
+        // Update the UI with the received obstacle data
+        Log.d(TAG, "Updating UI with ID: " + obstacleID + ", Text: " + obstacleText);
+        Button button = findButtonByObstacleID(obstacleID);
+        if (button != null) {
+            int fixedWidth = button.getWidth();
+            int fixedHeight = button.getHeight();
+
+            button.setText(obstacleText);
+            button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11); // Set text size in SP
+
+            // Prevent text wrapping
+            button.setSingleLine(true);
+            button.setEllipsize(TextUtils.TruncateAt.END);
+
+            // Lock the button's size to prevent resizing
+            ViewGroup.LayoutParams params = button.getLayoutParams();
+            params.width = fixedWidth;
+            params.height = fixedHeight;
+            button.setLayoutParams(params);
+
+            // Ensure text is centered
+            button.setIncludeFontPadding(false);
+            button.setGravity(Gravity.CENTER);
+
+            // Log update
+            btnLogAdapter.addLog(String.format("ID: %d, Text Change to: %s", obstacleID, obstacleText));
+
+        } else {
+            Log.d(TAG, "Button with obstacle ID " + obstacleID + " not found.");
+        }
+    }
+
+    private Button findButtonByObstacleID(int obstacleNumber) {
+        for (int i = 0; i < gridLayout.getChildCount(); i++) {
+            View view = gridLayout.getChildAt(i);
+            if (view instanceof Button) {
+                Button button = (Button) view;
+                // Retrieve the tag and check the obstacle number (index 5 in the tag)
+                int[] tag = (int[]) button.getTag();
+                if (tag != null && tag.length > 5 && tag[5] == obstacleNumber) {
+                    return button; // Return the button with the matching obstacle number
+                }
+            }
+        }
+        return null; // Return null if no button with the given obstacle number is found
     }
 }

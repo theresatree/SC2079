@@ -257,7 +257,6 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
             // After updating the "messages", we will update the UI element "incomingMessages"
             messages.append(text + "\n");
             incomingMessages.setText(messages);
-
         }
     };
 
@@ -284,6 +283,30 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
                     try{
                         obj.put("type", "MOVE-CAR");
                         obj.put("direction", intent.getStringExtra("direction"));
+                        obj.put("XAxis", intent.getStringExtra("carXAxis"));
+                        obj.put("yAxis", intent.getStringExtra("carYAxis"));
+                    } catch(JSONException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "OBSTACLE":
+                    try{
+                        obj.put("type", "OBSTACLE");
+                        obj.put("ID", intent.getStringExtra("obstacleID"));
+                        obj.put("xAxis", intent.getStringExtra("obstacleXAxis"));
+                        obj.put("yAxis", intent.getStringExtra("obstacleYAxis"));
+                        obj.put("text", intent.getStringExtra("obstacleText"));
+                        obj.put("direction", intent.getStringExtra("obstacleDirection"));
+                        obj.put("status", intent.getStringExtra("obstacleStatus"));
+                    } catch(JSONException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "OBSTACLE-INCOMING":
+                    try{
+                        obj.put("type", type);
+                        obj.put("ID", intent.getStringExtra("obstacleID"));
+                        obj.put("text", intent.getStringExtra("obstacleText"));
                     } catch(JSONException e) {
                         e.printStackTrace();
                     }

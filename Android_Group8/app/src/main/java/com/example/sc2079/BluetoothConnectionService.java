@@ -283,6 +283,24 @@ public class BluetoothConnectionService {
                         sendIntent("incomingMessage", message);
                         Log.d(TAG, "handleIncomingBTMessage: FOUND A CHAT MESSAGE");
                         return;
+                    case "OBSTACLE-INCOMING":
+                        // Handle OBSTACLE-INCOMING messages
+                        int obstacleID = msgJSON.getInt("obstacleID");  // Get obstacle ID (use getInt() for integer values)
+                        String obstacleText = msgJSON.getString("obstacleText");  // Get obstacle text
+
+                        // Log the obstacle data
+                        Log.d(TAG, "handleIncomingBTMessage: FOUND OBSTACLE-INCOMING - ID: " + obstacleID + ", Text: " + obstacleText);
+
+                        // Send data to the fragment
+                        Intent intent = new Intent("obstacleUpdate");
+
+                        // Put the data into the intent
+                        intent.putExtra("obstacleID", obstacleID);
+                        intent.putExtra("obstacleText", obstacleText);
+
+                        // Send the intent (you can use LocalBroadcastManager or standard broadcast based on your needs)
+                        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
+                        return;
                 }
             } catch(Exception e){
                 // Not a JSON obj
