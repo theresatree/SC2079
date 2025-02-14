@@ -283,8 +283,8 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
                     try{
                         obj.put("type", "MOVE-CAR");
                         obj.put("direction", intent.getStringExtra("direction"));
-                        obj.put("XAxis", intent.getStringExtra("carXAxis"));
-                        obj.put("yAxis", intent.getStringExtra("carYAxis"));
+                        obj.put("x", intent.getStringExtra("carXAxis"));
+                        obj.put("y", intent.getStringExtra("carYAxis"));
                     } catch(JSONException e) {
                         e.printStackTrace();
                     }
@@ -293,8 +293,8 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
                     try{
                         obj.put("type", "OBSTACLE");
                         obj.put("ID", intent.getStringExtra("obstacleID"));
-                        obj.put("xAxis", intent.getStringExtra("obstacleXAxis"));
-                        obj.put("yAxis", intent.getStringExtra("obstacleYAxis"));
+                        obj.put("x", intent.getStringExtra("obstacleXAxis"));
+                        obj.put("y", intent.getStringExtra("obstacleYAxis"));
                         obj.put("text", intent.getStringExtra("obstacleText"));
                         obj.put("direction", intent.getStringExtra("obstacleDirection"));
                         obj.put("status", intent.getStringExtra("obstacleStatus"));

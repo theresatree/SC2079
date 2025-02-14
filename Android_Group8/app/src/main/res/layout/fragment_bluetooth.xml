@@ -12,8 +12,9 @@
         android:id="@+id/lvNewDevices"
         android:layout_width="395dp"
         android:layout_height="150dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.457"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnScan" />
 
@@ -21,9 +22,9 @@
         android:id="@+id/lvPairedDevices"
         android:layout_width="395dp"
         android:layout_height="150dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.46"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
@@ -43,17 +44,12 @@
         android:id="@+id/btnStartConnection"
         android:layout_width="121dp"
         android:layout_height="50dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="176dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginStart="96dp"
         android:text="CONNECT"
         app:layout_constraintBottom_toTopOf="@+id/lvPairedDevices"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.947"
-        app:layout_constraintStart_toEndOf="@+id/btnBTOn"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintStart_toEndOf="@+id/textView4"
+        app:layout_constraintTop_toBottomOf="@+id/btnBTOn"
+        app:layout_constraintVertical_bias="0.566" />
 
     <TextView
         android:id="@+id/textView"
@@ -91,10 +87,10 @@
         android:text="Incoming Messages"
         app:layout_constraintBottom_toTopOf="@+id/btnScan"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.476"
+        app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etSend"
-        app:layout_constraintVertical_bias="0.853" />
+        app:layout_constraintVertical_bias="0.09" />
 
     <TextView
         android:id="@+id/textView5"
@@ -123,12 +119,12 @@
         android:id="@+id/btnSend"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="76dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="100dp"
         android:layout_marginEnd="152dp"
         android:text="SEND"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.17"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/etSend"
         app:layout_constraintTop_toBottomOf="@+id/lvPairedDevices" />
 
@@ -136,10 +132,10 @@
         android:id="@+id/btnScan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="148dp"
+        android:layout_marginTop="84dp"
         android:text="SCAN FOR DEVICES"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.47"
+        app:layout_constraintHorizontal_bias="0.472"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/etSend" />
 

@@ -49,7 +49,7 @@ public class GridFragment extends Fragment {
     private ButtonLogAdapter btnLogAdapter;
 
     private static final int ROWS = 20;
-    private static final int COLS = 15;
+    private static final int COLS = 20;
     private boolean isSettingObstacle = false;
     private boolean isSettingCar = false;
     private boolean isDragging = false;
@@ -178,7 +178,7 @@ public class GridFragment extends Fragment {
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     widthInPixels
             );
-            params.setMargins(0, 0,0, 0);  // Add some space between TextViews
+            params.setMargins(10, 0,0, 0);  // Add some space between TextViews
             textView.setLayoutParams(params);
             textView.setGravity(Gravity.CENTER);
             // Add TextView to the LinearLayout
