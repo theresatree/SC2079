@@ -181,7 +181,8 @@ public class BluetoothConnectionService {
     public void startClientThread(BluetoothDevice device, UUID uuid){
         Log.d(TAG, "startClient: Started.");
         try {
-            mProgressDialog = ProgressDialog.show(mContext, "Connecting Bluetooth", "Please Wait...", true);
+            // removed the progress dialog because it kept getting stuck on top and not disappearing
+            //mProgressDialog = ProgressDialog.show(mContext, "Connecting Bluetooth", "Please Wait...", true);
         } catch (Exception e) {
             Log.d(TAG, "StartClientThread Dialog show failure");
         }
