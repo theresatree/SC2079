@@ -17,9 +17,11 @@ import android.graphics.drawable.RotateDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.Shape;
 import android.os.Bundle;
+import android.widget.ToggleButton;
 
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -71,6 +73,18 @@ public class GridFragment extends Fragment {
     Intent instructionToSend;
     //Context mContext;
 
+    // Timer variables
+    public static long exploreTimer = 0;
+    public static Button exploreButton; // Used to toggle the timer to start/stop for task 1
+    public boolean exploreStarted = false;
+    public static TextView exploreTimerTextView; // Text display for task 1 timer
+
+    public static long fastestTimer = 0;
+    public static Button fastestButton; // Used to toggle the timer to start/stop for task 2
+    public boolean fastestStarted = false;
+    public static TextView fastestTimerTextView; // Text display for task 2 timer
+    public static Handler timerHandler = new Handler();
+
     public GridFragment() {
         // Required empty public constructor
         //this.mContext = getActivity();
@@ -82,6 +96,21 @@ public class GridFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
+    public static Runnable timerRunnableExplore = new Runnable() {
+        @Override
+        public void run() {
+            long millisecondsExplore = System.currentTimeMillis() - exploreTimer;
+            int secondsExplore = (int) (millisecondsExplore / 1000);
+            int minutesExplore = secondsExplore / 60;
+            secondsExplore = secondsExplore % 60;
+
+
+
+        }
+    };
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -200,6 +229,22 @@ public class GridFragment extends Fragment {
             String status = isSettingCar ? "Placement mode ON" : "Placement mode OFF";
             Toast.makeText(getContext(), status, Toast.LENGTH_SHORT).show();
         });
+
+        // ***** TO DO *****
+        // Toggle timer for task 1 (Explore Task)
+        exploreButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                // Show a popup to tell us that Task 1 timer has started
+                Toast.makeText(getContext(), "Task 1 Started", Toast.LENGTH_SHORT).show();
+
+                exploreTimer = System.currentTimeMillis(); // Start time of the task
+                timerHandler.postDelayed(timerRunnableExplore, 0); // start updating the timer
+            }
+        });
+
+        // Toggle timer for task 2 (Fastest Task)
+
 
         return root;
     }
@@ -1302,5 +1347,10 @@ public class GridFragment extends Fragment {
             }
         }
         return null; // Return null if no button with the given obstacle number is found
+    }
+
+    private void startRobotTask()
+    {
+
     }
 }
