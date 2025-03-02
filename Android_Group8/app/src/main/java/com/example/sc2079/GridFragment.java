@@ -232,16 +232,16 @@ public class GridFragment extends Fragment {
 
         // ***** TO DO *****
         // Toggle timer for task 1 (Explore Task)
-        exploreButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                // Show a popup to tell us that Task 1 timer has started
-                Toast.makeText(getContext(), "Task 1 Started", Toast.LENGTH_SHORT).show();
-
-                exploreTimer = System.currentTimeMillis(); // Start time of the task
-                timerHandler.postDelayed(timerRunnableExplore, 0); // start updating the timer
-            }
-        });
+//        exploreButton.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v){
+//                // Show a popup to tell us that Task 1 timer has started
+//                Toast.makeText(getContext(), "Task 1 Started", Toast.LENGTH_SHORT).show();
+//
+//                exploreTimer = System.currentTimeMillis(); // Start time of the task
+//                timerHandler.postDelayed(timerRunnableExplore, 0); // start updating the timer
+//            }
+//        });
 
         // Toggle timer for task 2 (Fastest Task)
 

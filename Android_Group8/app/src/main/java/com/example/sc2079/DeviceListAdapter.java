@@ -2,6 +2,7 @@ package com.example.sc2079;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,9 +35,11 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> {
 
             if (deviceName != null) {
                 deviceName.setText(device.getName());
+                deviceName.setTextColor(Color.BLACK);
             }
             if (deviceAdress != null) {
                 deviceAdress.setText(device.getAddress());
+                deviceAdress.setTextColor(Color.BLACK);
             }
         }
 
