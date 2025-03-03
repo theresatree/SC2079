@@ -17,6 +17,8 @@
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:text="Set Obstacle"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnDone" />
 
@@ -29,6 +31,8 @@
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:text="Set Car Point"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSetObstacle" />
 
@@ -177,6 +181,8 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="56dp"
         android:text="Start Robot"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnDone" />
 
@@ -186,7 +192,9 @@
         android:layout_height="41dp"
         android:layout_marginStart="176dp"
         android:layout_marginBottom="32dp"
-        android:text="Obstacled Confirmed"
+        android:text="Obstacle Confirmed"
+        android:backgroundTint="@color/btngreen"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
         app:layout_constraintStart_toStartOf="parent" />
 
