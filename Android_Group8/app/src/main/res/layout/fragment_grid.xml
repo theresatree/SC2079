@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GridFragment">
+    tools:context=".GridFragment"
+    android:background="@drawable/nintendo">
 
     <Button
         android:id="@+id/btnSetCar"
