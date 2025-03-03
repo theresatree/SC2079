@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -17,6 +18,7 @@ import android.graphics.drawable.RotateDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.Shape;
 import android.os.Bundle;
+import android.widget.ImageButton;
 import android.widget.ToggleButton;
 
 import androidx.fragment.app.Fragment;
@@ -121,10 +123,10 @@ public class GridFragment extends Fragment {
         Button btnSetObstacle = root.findViewById(R.id.btnSetObstacle);
         Button btnSetCar = root.findViewById(R.id.btnSetCar);
 
-        Button btnUp = root.findViewById(R.id.btnUp);
-        Button btnDown = root.findViewById(R.id.btnDown);
-        Button btnRight = root.findViewById(R.id.btnRight);
-        Button btnLeft = root.findViewById(R.id.btnLeft);
+        ImageButton btnUp = root.findViewById(R.id.btnUp);
+        ImageButton btnDown = root.findViewById(R.id.btnDown);
+        ImageButton btnRight = root.findViewById(R.id.btnRight);
+        ImageButton btnLeft = root.findViewById(R.id.btnLeft);
 
         RecyclerView rvBtnLog = root.findViewById(R.id.rvBtnLog);
         RecyclerView rvCarLog = root.findViewById(R.id.rvCarLog);
@@ -187,6 +189,7 @@ public class GridFragment extends Fragment {
         for (int i = 0; i <= COLS-1; i++) {
             TextView textView = new TextView(getContext());
             textView.setText(String.valueOf(i));
+            textView.setTextColor(Color.WHITE);
             // Set layout parameters to ensure horizontal orientation
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     widthInPixels,
@@ -202,6 +205,7 @@ public class GridFragment extends Fragment {
         for (int i = ROWS-1; i >=0; i--) {
             TextView textView = new TextView(getContext());
             textView.setText(String.valueOf(i));
+            textView.setTextColor(Color.WHITE);
             // Set layout parameters to ensure horizontal orientation
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -516,8 +520,9 @@ public class GridFragment extends Fragment {
                     break;
             }
             carLogAdapter.addLog(String.format("Car facing %s", message));
-            String rotationMessage = String.format("Direction: %s", message);
+            String rotationMessage = String.format("Direction of Car:\n%s", message);
             textViewDirection.setText(rotationMessage);  // Set the text
+            textViewDirection.setGravity(Gravity.CENTER);  // Set the gravity to center
         }
     }
 
@@ -1051,9 +1056,9 @@ public class GridFragment extends Fragment {
             // Place the car at the new position
             placeCarAt(newRow, newCol);
 
-            // Optional: Show a toast with the new position
-            String message = String.format("Car moved to: (%d, %d)", newCol, newRow);
-            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+//            // Optional: Show a toast with the new position
+//            String message = String.format("Car moved to: (%d, %d)", newCol, newRow);
+//            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
 
             // Send a message to the rpi with the move instruction
 //            switch (Math.floorMod(Math.round(triangleRotation), 360)) {

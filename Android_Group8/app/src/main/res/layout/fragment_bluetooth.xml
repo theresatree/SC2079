@@ -8,26 +8,25 @@
     tools:context=".BluetoothSetUpFragment"
     android:background="@drawable/btbackground">
 
+
     <ListView
         android:id="@+id/lvNewDevices"
-        android:layout_width="395dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.457"
+        android:layout_width="430dp"
+        android:layout_height="140dp"
+        android:layout_marginStart="96dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnScan" />
+        app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
     <ListView
         android:id="@+id/lvPairedDevices"
-        android:layout_width="395dp"
-        android:layout_height="150dp"
+        android:layout_width="430dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="12dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.46"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
-
 
     <Button
         android:id="@+id/btnBTOn"
@@ -43,19 +42,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.069" />
 
-    <Button
-        android:id="@+id/btnStartConnection"
-        android:layout_width="121dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="136dp"
-        android:backgroundTint="@color/btnblue"
-        android:text="CONNECT"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/lvPairedDevices"
-        app:layout_constraintStart_toEndOf="@+id/textView4"
-        app:layout_constraintTop_toBottomOf="@+id/btnBTOn"
-        app:layout_constraintVertical_bias="1.0" />
-
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
@@ -65,92 +51,114 @@
         android:scaleX="2"
         android:scaleY="2"
         android:text="Bluetooth Settings"
+        android:textColor="@color/white"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/btnBTOn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.543"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.523"
-        android:textColor="@color/black"/>
+        app:layout_constraintVertical_bias="0.523" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="44dp"
         android:text="List of Paired Devices"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.253"
+        app:layout_constraintHorizontal_bias="0.148"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnBTOn"
-        android:textColor="@color/black"/>
+        app:layout_constraintTop_toBottomOf="@+id/btnBTOn" />
 
     <TextView
         android:id="@+id/incomingMessage"
-        android:layout_width="390dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
+        android:layout_width="281dp"
+        android:layout_height="113dp"
+        android:layout_marginStart="72dp"
+        android:layout_marginTop="12dp"
         android:text="Incoming Messages"
-        app:layout_constraintBottom_toTopOf="@+id/btnScan"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.518"
+        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etSend"
-        app:layout_constraintVertical_bias="0.0"
-        android:textColor="@color/black"/>
+        app:layout_constraintTop_toBottomOf="@+id/etSend" />
 
     <TextView
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
+        android:layout_marginStart="72dp"
+        android:layout_marginTop="140dp"
         android:text="Send a test message"
-        app:layout_constraintBottom_toTopOf="@+id/etSend"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.278"
+        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        android:textColor="@color/black"/>
+        app:layout_constraintTop_toBottomOf="@+id/lvNewDevices" />
 
     <EditText
         android:id="@+id/etSend"
-        android:layout_width="280dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="100dp"
+        android:layout_width="198dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
         android:inputType="text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.381"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@+id/btnSend"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lvPairedDevices"
-        android:textColor="@color/black"/>
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
     <Button
         android:id="@+id/btnSend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="152dp"
-        android:text="SEND"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/etSend"
-        app:layout_constraintTop_toBottomOf="@+id/lvPairedDevices"
+        android:layout_width="81dp"
+        android:layout_height="43dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
         android:backgroundTint="@color/btnblue"
-        android:textColor="@color/white"/>
+        android:text="SEND"
+        android:textColor="@color/white"
+        android:textSize="12dp"
+        app:layout_constraintStart_toEndOf="@+id/etSend"
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
     <Button
         android:id="@+id/btnScan"
+        android:layout_width="115dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="152dp"
+        android:backgroundTint="@color/btnblue"
+        android:text="SCAN DEVICES"
+        android:textColor="@color/white"
+        android:textSize="9.5dp"
+        app:layout_constraintStart_toEndOf="@+id/btnSend"
+        app:layout_constraintTop_toBottomOf="@+id/lvNewDevices" />
+
+    <Button
+        android:id="@+id/btnStartConnection"
+        android:layout_width="115dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="11dp"
+        android:layout_marginBottom="158dp"
+        android:backgroundTint="@color/btnblue"
+        android:text="CONNECT"
+        android:textColor="@color/white"
+        android:textSize="10.5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnSend"
+        app:layout_constraintTop_toBottomOf="@+id/btnScan"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/textView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="84dp"
-        android:text="SCAN FOR DEVICES"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.472"
+        android:layout_marginStart="76dp"
+        android:layout_marginTop="8dp"
+        android:text="List of Scanned Devices"
+        android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etSend"
-        android:backgroundTint="@color/btnblue"
-        android:textColor="@color/white"/>
+        app:layout_constraintTop_toBottomOf="@+id/lvPairedDevices" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,5 +1,6 @@
 package com.example.sc2079;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -32,7 +33,8 @@ public class ButtonLogAdapter extends RecyclerView.Adapter<ButtonLogAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.textView.setText(logList.get(position));
-        holder.textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16); // Set text size to 16sp
+        holder.textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14); // Set text size to 11sp
+        holder.textView.setTextColor(Color.WHITE); // Correct way to set text color
         holder.textView.setTypeface(null, Typeface.NORMAL); // Set text to normal (non-bold)
     }
 

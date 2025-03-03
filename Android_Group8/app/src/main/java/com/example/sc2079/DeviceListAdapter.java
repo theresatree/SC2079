@@ -35,11 +35,11 @@ public class DeviceListAdapter extends ArrayAdapter<BluetoothDevice> {
 
             if (deviceName != null) {
                 deviceName.setText(device.getName());
-                deviceName.setTextColor(Color.BLACK);
+                deviceName.setTextColor(Color.LTGRAY);
             }
             if (deviceAdress != null) {
                 deviceAdress.setText(device.getAddress());
-                deviceAdress.setTextColor(Color.BLACK);
+                deviceAdress.setTextColor(Color.LTGRAY);
             }
         }
 

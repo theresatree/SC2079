@@ -8,30 +8,34 @@
     android:background="@drawable/gridbackground">
 
     <Button
-        android:id="@+id/btnSetCar"
-        android:layout_width="110dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="100dp"
-        android:text="Set Car Point"
-        app:layout_constraintStart_toEndOf="@+id/gridLayout"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/btnSetObstacle"
+        android:layout_width="90dp"
+        android:layout_height="62dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="5dp"
+        android:includeFontPadding="false"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="Set Obstacle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnDone" />
 
     <Button
-        android:id="@+id/btnSetObstacle"
-        android:layout_width="110dp"
+        android:id="@+id/btnSetCar"
+        android:layout_width="90dp"
         android:layout_height="60dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="100dp"
-        android:text="Set Obstacle"
-        app:layout_constraintStart_toEndOf="@+id/gridLayout"
-        app:layout_constraintTop_toBottomOf="@+id/btnSetCar" />
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="5dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="Set Car Point"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnSetObstacle" />
 
     <androidx.gridlayout.widget.GridLayout
         android:id="@+id/gridLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         app:columnCount="20"
         app:layout_constraintBottom_toTopOf="@+id/columnText"
         app:layout_constraintStart_toEndOf="@+id/rowText"
@@ -48,48 +52,29 @@
 
     <LinearLayout
         android:id="@+id/rowText"
-        android:layout_width="26dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="0dp"
-        android:layout_marginStart="25dp"
-        android:layout_marginTop="35dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginTop="23dp"
+        android:gravity="end"
         android:orientation="vertical"
         android:padding="0dp"
+        android:paddingEnd="5dp"
         app:layout_constraintBottom_toBottomOf="@+id/gridLayout"
+        app:layout_constraintEnd_toStartOf="@+id/gridLayout"
+        app:layout_constraintHorizontal_bias="0.2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBtnLog"
-        android:layout_width="205dp"
-        android:layout_height="153dp"
-        android:layout_marginStart="36dp"
+        android:layout_width="150dp"
+        android:layout_height="90dp"
+        android:layout_marginStart="40dp"
         android:layout_marginBottom="4dp"
         app:layout_constraintBottom_toTopOf="@+id/textView2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCarLog"
-        android:layout_width="205dp"
-        android:layout_height="153dp"
-        android:layout_marginStart="36dp"
-        android:layout_marginTop="688dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="108dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="5dp"
-        android:text="Car Log"
-        app:layout_constraintBottom_toTopOf="@+id/rvCarLog"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnRight"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
 
@@ -97,92 +82,113 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="96dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginStart="76dp"
+        android:layout_marginBottom="4dp"
         android:text="Button Log"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/rvBtnLog"
+        app:layout_constraintStart_toEndOf="@+id/button" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCarLog"
+        android:layout_width="150dp"
+        android:layout_height="95dp"
+        android:layout_marginStart="128dp"
+        android:layout_marginTop="736dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/columnText"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="183dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="5dp"
+        android:text="Car Log"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/rvCarLog"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
 
-    <Button
-        android:id="@+id/btnUp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="292dp"
-        android:layout_marginTop="12dp"
-        android:text="Up"
-        app:layout_constraintStart_toEndOf="@+id/textView3"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDirection" />
-
-    <Button
+    <ImageButton
         android:id="@+id/btnRight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Right"
-        app:layout_constraintStart_toEndOf="@+id/btnLeft"
-        app:layout_constraintTop_toBottomOf="@+id/btnUp" />
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="25dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/right"
+        app:layout_constraintBottom_toTopOf="@+id/btnDown"
+        app:layout_constraintStart_toEndOf="@+id/btnLeft" />
 
-    <Button
-        android:id="@+id/btnDown"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginStart="292dp"
-        android:layout_marginTop="12dp"
-        android:text="Down"
-        app:layout_constraintStart_toEndOf="@+id/textView3"
-        app:layout_constraintTop_toBottomOf="@+id/btnLeft" />
-
-    <Button
+    <ImageButton
         android:id="@+id/btnLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="8dp"
-        android:text="Left"
-        app:layout_constraintStart_toEndOf="@+id/textView3"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="15dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/left"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnUp" />
+
+    <ImageButton
+        android:id="@+id/btnUp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="29dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/up"
+        app:layout_constraintStart_toEndOf="@+id/btnLeft"
+        app:layout_constraintTop_toBottomOf="@+id/button" />
+
+    <ImageButton
+        android:id="@+id/btnDown"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginBottom="71dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/down"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnLeft"
+        app:layout_constraintTop_toBottomOf="@+id/btnLeft"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/textViewDirection"
         android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:layout_marginStart="280dp"
-        android:layout_marginTop="648dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="110dp"
+        android:layout_marginTop="594dp"
+        android:includeFontPadding="false"
         android:text="Direction of Car"
+        android:textColor="@color/white"
         app:layout_constraintStart_toEndOf="@+id/textView3"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="180dp"
-        android:layout_marginBottom="80dp"
+        android:layout_width="87dp"
+        android:layout_height="63dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="56dp"
         android:text="Start Robot"
-        app:layout_constraintBottom_toTopOf="@+id/textViewDirection"
-        app:layout_constraintStart_toEndOf="@+id/rvBtnLog" />
-
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="110dp"
-        android:layout_height="41dp"
-        android:gravity="center"
-        android:text="TextView"
-        tools:layout_editor_absoluteX="421dp"
-        tools:layout_editor_absoluteY="580dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnDone" />
 
     <Button
         android:id="@+id/btnDone"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="56dp"
-        android:text="Done"
-        app:layout_constraintStart_toEndOf="@+id/gridLayout"
-        app:layout_constraintTop_toBottomOf="@+id/btnSetObstacle" />
+        android:layout_width="219dp"
+        android:layout_height="41dp"
+        android:layout_marginStart="176dp"
+        android:layout_marginBottom="32dp"
+        android:text="Obstacled Confirmed"
+        app:layout_constraintBottom_toTopOf="@+id/textView3"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
