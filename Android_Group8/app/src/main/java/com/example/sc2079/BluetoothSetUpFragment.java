@@ -311,6 +311,13 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
                         e.printStackTrace();
                     }
                     break;
+                case "OBSTACLE-DONE":
+                    try {
+                        obj.put("type", "OBSTACLE-DONE");
+                        obj.put("status", intent.getStringExtra("status"));
+                    } catch(JSONException e){
+                        e.printStackTrace();
+                    }
             }
 
             byte[] bytes = obj.toString().getBytes(Charset.defaultCharset());

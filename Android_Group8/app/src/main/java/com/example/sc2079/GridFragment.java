@@ -245,6 +245,17 @@ public class GridFragment extends Fragment {
 
         // Toggle timer for task 2 (Fastest Task)
 
+        Button btnDone = root.findViewById(R.id.btnDone);
+        btnDone.setOnClickListener(v -> {
+
+            Intent intent = new Intent("SendInstruction");
+
+            intent.putExtra("type", "OBSTACLE-DONE");
+            intent.putExtra("status", "done");
+            // Send the broadcast
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        });
+
 
         return root;
     }
@@ -1045,41 +1056,41 @@ public class GridFragment extends Fragment {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
 
             // Send a message to the rpi with the move instruction
-            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
-                case 0: // North
-                    instructionToSend = new Intent("SendInstruction");
-                    instructionToSend.putExtra("type", "MOVE-CAR");
-                    instructionToSend.putExtra("direction", "NORTH");
-                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-                    // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
-                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-                    break;
-                case 90: // East
-                    instructionToSend = new Intent("SendInstruction");
-                    instructionToSend.putExtra("type", "MOVE-CAR");
-                    instructionToSend.putExtra("direction", "EAST");
-                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-                    break;
-                case 180: // South
-                    instructionToSend = new Intent("SendInstruction");
-                    instructionToSend.putExtra("type", "MOVE-CAR");
-                    instructionToSend.putExtra("direction", "SOUTH");
-                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-                    break;
-                case 270: // West
-                    instructionToSend = new Intent("SendInstruction");
-                    instructionToSend.putExtra("type", "MOVE-CAR");
-                    instructionToSend.putExtra("direction", "WEST");
-                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-                    break;
-            }
+//            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+//                case 0: // North
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "NORTH");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//                case 90: // East
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "EAST");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//                case 180: // South
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "SOUTH");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//                case 270: // West
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "WEST");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//            }
             carLogAdapter.addLog(String.format("Move to [%d,%d]", newCol, newRow));
         } else {
             // Collision detected, show a warning
