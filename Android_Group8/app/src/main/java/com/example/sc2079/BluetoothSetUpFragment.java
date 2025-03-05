@@ -126,7 +126,9 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
             @Override
             public void onClick(View view){
                 byte[] bytes = etSend.getText().toString().getBytes(Charset.defaultCharset());
-                mBluetoothConnection.write(bytes);
+                if(mBluetoothConnection != null) {
+                    mBluetoothConnection.write(bytes);
+                }
 
                 etSend.setText("");
             }
@@ -320,8 +322,10 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
                     }
             }
 
-            byte[] bytes = obj.toString().getBytes(Charset.defaultCharset());
-            mBluetoothConnection.write(bytes);
+            if (mBluetoothConnection != null) {
+                byte[] bytes = obj.toString().getBytes(Charset.defaultCharset());
+                mBluetoothConnection.write(bytes);
+            }
         }
     };
 
@@ -334,8 +338,9 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
     // Starting the chat service method
     public void startBTConnection(BluetoothDevice device, UUID uuid){
         Log.d(TAG, "startBTConnection: Initialising RFCOMM Bluetooth Connection");
-
-        mBluetoothConnection.startClientThread(device,uuid);
+        if(device != null) {
+            mBluetoothConnection.startClientThread(device, uuid);
+        }
     }
 
 

@@ -46,11 +46,14 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import kotlinx.coroutines.channels.Send;
+
 public class GridFragment extends Fragment {
     public static final String TAG = "GridFragment";
     private TextView textViewDirection;
     private CarLogAdapter carLogAdapter;
     private ButtonLogAdapter btnLogAdapter;
+    BluetoothConnectionService mBluetoothConnection;
 
     private static final int ROWS = 20;
     private static final int COLS = 20;
@@ -150,6 +153,7 @@ public class GridFragment extends Fragment {
         rvBtnLog.setLayoutManager(layoutManager2);
         rvBtnLog.setAdapter(btnLogAdapter);
 
+        mBluetoothConnection = new BluetoothConnectionService(getContext());
 
         btnUp.setOnClickListener(v -> {
             if (carSet) {
@@ -164,12 +168,12 @@ public class GridFragment extends Fragment {
 
         btnLeft.setOnClickListener(v -> {
             if (carSet) {
-                rotateCar(-1);
+                rotateCar(-1, true);
             }
         });
         btnRight.setOnClickListener(v -> {
             if (carSet) {
-                rotateCar(1);
+                rotateCar(1, true);
             }
         });
 
@@ -308,6 +312,10 @@ public class GridFragment extends Fragment {
                 button.setOnClickListener(v -> {
                     if (isSettingObstacle && !isDragging) {
                         int[] coords = (int[]) button.getTag();
+                        if(mBluetoothConnection.BluetoothConnectionStatus == false){
+                            Toast.makeText(getContext(), "Please connect to bluetooth first!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         if (!canPlaceObstacle(coords)) {
                             Toast.makeText(getContext(), "Can't place obstacle here", Toast.LENGTH_SHORT).show();
                             return;
@@ -344,6 +352,10 @@ public class GridFragment extends Fragment {
                         }
                     } else if (isSettingCar) {
                         int[] coords = (int[]) button.getTag();
+                        if(mBluetoothConnection.BluetoothConnectionStatus == false){
+                            Toast.makeText(getContext(), "Please connect to bluetooth first!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         if (!canPlaceCar(coords)) {
                             Toast.makeText(getContext(), "Can't place car here (obstacle present)", Toast.LENGTH_SHORT).show();
                             return;
@@ -1060,128 +1072,7 @@ public class GridFragment extends Fragment {
 //            String message = String.format("Car moved to: (%d, %d)", newCol, newRow);
 //            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
 
-            // Send a message to the rpi with the move instruction
-//            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
-//                case 0: // North
-//                    instructionToSend = new Intent("SendInstruction");
-//                    instructionToSend.putExtra("type", "MOVE-CAR");
-//                    instructionToSend.putExtra("direction", "NORTH");
-//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-//                    // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
-//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-//                    break;
-//                case 90: // East
-//                    instructionToSend = new Intent("SendInstruction");
-//                    instructionToSend.putExtra("type", "MOVE-CAR");
-//                    instructionToSend.putExtra("direction", "EAST");
-//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-//                    break;
-//                case 180: // South
-//                    instructionToSend = new Intent("SendInstruction");
-//                    instructionToSend.putExtra("type", "MOVE-CAR");
-//                    instructionToSend.putExtra("direction", "SOUTH");
-//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-//                    break;
-//                case 270: // West
-//                    instructionToSend = new Intent("SendInstruction");
-//                    instructionToSend.putExtra("type", "MOVE-CAR");
-//                    instructionToSend.putExtra("direction", "WEST");
-//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
-//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
-//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
-//                    break;
-//            }
-            carLogAdapter.addLog(String.format("Move to [%d,%d]", newCol, newRow));
-        } else {
-            // Collision detected, show a warning
-            Toast.makeText(getContext(), "Cannot move forward (collision detected)", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void rotateCar(int turnDirection) {
-        if (lastCarCoordinates == null) {
-            return; // No car placed yet
-        }
-
-        // Validate turnDirection input
-        if (turnDirection != 1 && turnDirection != -1) {
-            throw new IllegalArgumentException("Invalid turn direction. Use 1 for right or -1 for left.");
-        }
-
-        int currentRow = lastCarCoordinates[0];
-        int currentCol = lastCarCoordinates[1];
-
-        // Calculate the new position based on the turn direction and current orientation
-        int newRow = currentRow;
-        int newCol = currentCol;
-
-        switch (Math.floorMod(Math.round(triangleRotation), 360)) {
-            case 0: // North
-                if (turnDirection == 1) {
-                    newRow += 1; // Turn right (East)
-                    newCol += 1;
-                } else {
-                    newRow += 1; // Turn left (West)
-                    newCol -= 1;
-                }
-                break;
-            case 90: // East
-                if (turnDirection == 1) {
-                    newRow -= 1; // Turn right (South)
-                    newCol += 1;
-                } else {
-                    newRow += 1; // Turn left (North)
-                    newCol += 1;
-                }
-                break;
-            case 180: // South
-                if (turnDirection == 1) {
-                    newRow -= 1; // Turn right (West)
-                    newCol -= 1;
-                } else {
-                    newRow -= 1; // Turn left (East)
-                    newCol += 1;
-                }
-                break;
-            case 270: // West
-                if (turnDirection == 1) {
-                    newRow += 1; // Turn right (North)
-                    newCol -= 1;
-                } else {
-                    newRow -= 1; // Turn left (South)
-                    newCol -= 1;
-                }
-                break;
-        }
-
-        // Check if the new position is valid using canPlaceCar()
-        int[] newCarCoordinates = {newRow, newCol};
-        if (canPlaceCar(newCarCoordinates)) {
-            // Reset the current car placement
-            resetCarPlacement(lastCarCoordinates);
-
-            // Update the car's position
-            lastCarCoordinates[0] = newRow;
-            lastCarCoordinates[1] = newCol;
-
-            // Update the car's rotation
-            triangleRotation += (turnDirection == 1) ? 90 : -90; // Turn right or left
-            triangleRotation = Math.floorMod(Math.round(triangleRotation), 360); // Normalize rotation
-
-            // Place the car at the new position
-            placeCarAt(newRow, newCol);
-
-            // Update the triangle rotation visual
-            updateTriangleRotation();
-
-            // Update the TextView with the new direction
-            updateTextView();
-
+//             Send a message to the rpi with the move instruction
             switch (Math.floorMod(Math.round(triangleRotation), 360)) {
                 case 0: // North
                     instructionToSend = new Intent("SendInstruction");
@@ -1217,6 +1108,170 @@ public class GridFragment extends Fragment {
                     LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
                     break;
             }
+            carLogAdapter.addLog(String.format("Move to [%d,%d]", newCol, newRow));
+        } else {
+            // Collision detected, show a warning
+            Toast.makeText(getContext(), "Cannot move forward (collision detected)", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void rotateCar(int turnDirection, boolean isReverse) {
+        if (lastCarCoordinates == null) {
+            return; // No car placed yet
+        }
+
+        // Validate turnDirection input
+        if (turnDirection != 1 && turnDirection != -1) {
+            throw new IllegalArgumentException("Invalid turn direction. Use 1 for right or -1 for left.");
+        }
+
+        int currentRow = lastCarCoordinates[0];
+        int currentCol = lastCarCoordinates[1];
+
+        // Calculate the new position based on the turn direction and current orientation
+        int newRow = currentRow;
+        int newCol = currentCol;
+        if(!isReverse)
+        {
+            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+                case 0: // North
+                    if (turnDirection == 1) {
+                        newRow += 1; // Turn right (East)
+                        newCol += 1;
+                    } else {
+                        newRow += 1; // Turn left (West)
+                        newCol -= 1;
+                    }
+                    break;
+                case 90: // East
+                    if (turnDirection == 1) {
+                        newRow -= 1; // Turn right (South)
+                        newCol += 1;
+                    } else {
+                        newRow += 1; // Turn left (North)
+                        newCol += 1;
+                    }
+                    break;
+                case 180: // South
+                    if (turnDirection == 1) {
+                        newRow -= 1; // Turn right (West)
+                        newCol -= 1;
+                    } else {
+                        newRow -= 1; // Turn left (East)
+                        newCol += 1;
+                    }
+                    break;
+                case 270: // West
+                    if (turnDirection == 1) {
+                        newRow += 1; // Turn right (North)
+                        newCol -= 1;
+                    } else {
+                        newRow -= 1; // Turn left (South)
+                        newCol -= 1;
+                    }
+                    break;
+            }
+        }
+        else{
+            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+                case 0: // North
+                    if (turnDirection == 1) {
+                        newRow -= 1; // Turn right (East)
+                        newCol += 1;
+                    } else {
+                        newRow -= 1; // Turn left (West)
+                        newCol -= 1;
+                    }
+                    break;
+                case 90: // East
+                    if (turnDirection == 1) {
+                        newRow -= 1; // Turn right (South)
+                        newCol -= 1;
+                    } else {
+                        newRow += 1; // Turn left (North)
+                        newCol -= 1;
+                    }
+                    break;
+                case 180: // South
+                    if (turnDirection == 1) {
+                        newRow += 1; // Turn right (West)
+                        newCol -= 1;
+                    } else {
+                        newRow += 1; // Turn left (East)
+                        newCol += 1;
+                    }
+                    break;
+                case 270: // West
+                    if (turnDirection == 1) {
+                        newRow -= 1; // Turn right (North)
+                        newCol += 1;
+                    } else {
+                        newRow += 1; // Turn left (South)
+                        newCol += 1;
+                    }
+                    break;
+            }
+        }
+
+
+        // Check if the new position is valid using canPlaceCar()
+        int[] newCarCoordinates = {newRow, newCol};
+        if (canPlaceCar(newCarCoordinates)) {
+            // Reset the current car placement
+            resetCarPlacement(lastCarCoordinates);
+
+            // Update the car's position
+            lastCarCoordinates[0] = newRow;
+            lastCarCoordinates[1] = newCol;
+
+            // Update the car's rotation
+            triangleRotation += (turnDirection == 1) ? 90 : -90; // Turn right or left
+            triangleRotation = Math.floorMod(Math.round(triangleRotation), 360); // Normalize rotation
+
+            // Place the car at the new position
+            placeCarAt(newRow, newCol);
+
+            // Update the triangle rotation visual
+            updateTriangleRotation();
+
+            // Update the TextView with the new direction
+            updateTextView();
+//
+//            switch (Math.floorMod(Math.round(triangleRotation), 360)) {
+//                case 0: // North
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "NORTH");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    // TO ADD X AND Y COORDS INTO THE JSON TO SEND ALSO
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//                case 90: // East
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "EAST");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//                case 180: // South
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "SOUTH");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//                case 270: // West
+//                    instructionToSend = new Intent("SendInstruction");
+//                    instructionToSend.putExtra("type", "MOVE-CAR");
+//                    instructionToSend.putExtra("direction", "WEST");
+//                    instructionToSend.putExtra("carXAxis", String.valueOf(newCol));
+//                    instructionToSend.putExtra("carYAxis", String.valueOf(newRow));
+//                    LocalBroadcastManager.getInstance(getContext()).sendBroadcast(instructionToSend);
+//                    break;
+//            }
 
 //            // Send a message to the RPi with the rotation instruction
 //            Intent instructionToSend = new Intent("SendInstruction");
@@ -1235,6 +1290,7 @@ public class GridFragment extends Fragment {
 
     private void placeCarAt(int row, int col) {
         // Calculate the starting row and column for the 3x3 grid
+
         int startRow = row - 1;
         int startCol = col - 1;
 
