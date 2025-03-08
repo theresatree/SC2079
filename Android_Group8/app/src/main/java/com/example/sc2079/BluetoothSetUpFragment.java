@@ -320,6 +320,14 @@ public class BluetoothSetUpFragment extends Fragment implements AdapterView.OnIt
                     } catch(JSONException e){
                         e.printStackTrace();
                     }
+                    break;
+                case "START-ROBOT":
+                    try {
+                        obj.put("type", "START-ROBOT");
+                    } catch(JSONException e){
+                        e.printStackTrace();
+                    }
+                    break;
             }
 
             if (mBluetoothConnection != null) {

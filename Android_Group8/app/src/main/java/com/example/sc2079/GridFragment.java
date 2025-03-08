@@ -251,7 +251,7 @@ public class GridFragment extends Fragment {
 //            }
 //        });
 
-        // Toggle timer for task 2 (Fastest Task)
+
 
         Button btnDone = root.findViewById(R.id.btnDone);
         btnDone.setOnClickListener(v -> {
@@ -264,6 +264,13 @@ public class GridFragment extends Fragment {
             LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
         });
 
+        // Button to tell the rpi to start the robot for the task
+        Button btnStart = root.findViewById(R.id.btnStart);
+        btnStart.setOnClickListener(v -> {
+            Intent intent = new Intent("SendInstruction");
+            intent.putExtra("type", "START-ROBOT");
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        });
 
         return root;
     }
@@ -1413,16 +1420,12 @@ public class GridFragment extends Fragment {
                 Button button = (Button) view;
                 // Retrieve the tag and check the obstacle number (index 5 in the tag)
                 int[] tag = (int[]) button.getTag();
-                if (tag != null && tag.length > 5 && tag[5] == obstacleNumber) {
+                if (tag != null && tag.length > 5 && tag[5] == obstacleNumber && tag[2] == 1) {
+                    btnLogAdapter.addLog(String.format("Found button to update, ID: %d", obstacleNumber));
                     return button; // Return the button with the matching obstacle number
                 }
             }
         }
         return null; // Return null if no button with the given obstacle number is found
-    }
-
-    private void startRobotTask()
-    {
-
     }
 }
