@@ -190,13 +190,25 @@
         android:id="@+id/btnDone"
         android:layout_width="219dp"
         android:layout_height="41dp"
-        android:layout_marginStart="176dp"
+        android:layout_marginStart="50dp"
         android:layout_marginBottom="32dp"
-        android:text="Obstacle Confirmed"
         android:backgroundTint="@color/btngreen"
+        android:text="Obstacle Confirmed"
         android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/textView3"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="100dp"
+        android:layout_height="41dp"
+        android:layout_marginStart="200dp"
+        android:layout_marginBottom="64dp"
+        android:backgroundTint="@color/btngreen"
+        android:text="Start"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/btnSetObstacle"
+        app:layout_constraintStart_toEndOf="@+id/btnDone" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
